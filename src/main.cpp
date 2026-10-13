@@ -1,17 +1,23 @@
 
 #include <iostream>
-#include "TextProcessor.h"
+#include "NGramGenerator.h"
 using namespace std;
 
 int main()
 {
-    TextProcessor processor;
+    NGramGenerator generator;
 
-    string text = "INT   Sum = 10;";
+    string text = "int sum = 10 return sum";
+    int n = 2;
 
-    cout << "Original text: " << text << endl;
-    cout << "Processed text: "
-         << processor.processText(text) << endl;
+    vector<string> ngrams = generator.generateNGrams(text, n);
+
+    cout << "Generated N-Grams:" << endl;
+
+    for (const string& gram : ngrams)
+    {
+        cout << gram << endl;
+    }
 
     return 0;
 }
