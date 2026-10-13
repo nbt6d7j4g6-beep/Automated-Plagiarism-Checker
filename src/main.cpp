@@ -1,23 +1,18 @@
 
 #include <iostream>
-#include "NGramGenerator.h"
+#include "SimilarityCalculator.h"
 using namespace std;
 
 int main()
 {
-    NGramGenerator generator;
+    SimilarityCalculator calculator;
 
-    string text = "int sum = 10 return sum";
-    int n = 2;
+    vector<string> gramsA = {"int sum", "sum =", "= 10"};
+    vector<string> gramsB = {"int sum", "sum =", "= 20"};
 
-    vector<string> ngrams = generator.generateNGrams(text, n);
+    double result = calculator.calculateSimilarity(gramsA, gramsB);
 
-    cout << "Generated N-Grams:" << endl;
-
-    for (const string& gram : ngrams)
-    {
-        cout << gram << endl;
-    }
+    cout << "Similarity: " << result << "%" << endl;
 
     return 0;
 }
