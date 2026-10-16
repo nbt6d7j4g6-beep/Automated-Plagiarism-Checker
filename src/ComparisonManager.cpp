@@ -1,10 +1,12 @@
 
 #include <iostream>
+#include <string>
 #include "ComparisonManager.h"
 #include "FileManager.h"
 #include "TextProcessor.h"
 #include "NGramGenerator.h"
 #include "SimilarityCalculator.h"
+#include "PlagiarismReport.h"
 using namespace std;
 
 void ComparisonManager::compareFiles(vector<string> files)
@@ -13,6 +15,7 @@ void ComparisonManager::compareFiles(vector<string> files)
     TextProcessor processor;
     NGramGenerator generator;
     SimilarityCalculator calculator;
+    PlagiarismReport report;
 
     int n = 3;
 
@@ -41,6 +44,16 @@ void ComparisonManager::compareFiles(vector<string> files)
             cout << "\nFile 1: " << files[i] << endl;
             cout << "File 2: " << files[j] << endl;
             cout << "Similarity: " << similarity << "%" << endl;
+
+            string result = "File 1: " + files[i] +
+                "\nFile 2: " + files[j] +
+                "\nSimilarity: " + to_string(similarity) + "%";
+
+            report.addResult(result);
         }
     }
+
+    report.saveReport("plagiarism_report.txt");
+
+    cout << "\nReport saved to plagiarism_report.txt" << endl;
 }
