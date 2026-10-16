@@ -45,15 +45,14 @@ void ComparisonManager::compareFiles(vector<string> files)
             cout << "File 2: " << files[j] << endl;
             cout << "Similarity: " << similarity << "%" << endl;
 
-            string result = "File 1: " + files[i] +
-                "\nFile 2: " + files[j] +
-                "\nSimilarity: " + to_string(similarity) + "%";
-
-            report.addResult(result);
+    report.addResult(files[i], files[j], similarity);
         }
     }
 
     report.saveReport("plagiarism_report.txt");
+    report.saveJsonReport("plagiarism_report.json");
 
-    cout << "\nReport saved to plagiarism_report.txt" << endl;
+    cout << "\nText and JSON reports saved." << endl;
+
+   
 }

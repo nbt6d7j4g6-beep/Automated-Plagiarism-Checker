@@ -9,11 +9,19 @@ using namespace std;
 class PlagiarismReport
 {
 private:
-    vector<string> results;
+    struct Result
+    {
+        string file1;
+        string file2;
+        double similarity;
+    };
+
+    vector<Result> results;
 
 public:
-    void addResult(string result);
+    void addResult(string file1, string file2, double similarity);
     void saveReport(string fileName);
+    void saveJsonReport(string fileName);
 };
 
 #endif
