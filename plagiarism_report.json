@@ -5,7 +5,8 @@
     {
       "file1": "sample_files\\student1.cpp",
       "file2": "sample_files\\student2.cpp",
-      "similarity": 62.5
+      "similarity": 62.5,
+      "category": "High"
     }
   ]
 }

@@ -3,4 +3,5 @@ AUTOMATED PLAGIARISM CHECKER REPORT
 File 1: sample_files\student1.cpp
 File 2: sample_files\student2.cpp
 Similarity: 62.5%
+Category: High
 

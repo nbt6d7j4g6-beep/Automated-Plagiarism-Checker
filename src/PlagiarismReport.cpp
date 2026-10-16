@@ -35,6 +35,15 @@ void PlagiarismReport::addResult(
     result.file2 = file2;
     result.similarity = similarity;
 
+    if (similarity < 30)
+        result.category = "Low";
+    else if (similarity < 60)
+        result.category = "Moderate";
+    else if (similarity < 80)
+        result.category = "High";
+    else
+        result.category = "Very High";
+
     results.push_back(result);
 }
 
@@ -51,7 +60,8 @@ void PlagiarismReport::saveReport(string fileName)
     {
         file << "File 1: " << results[i].file1 << "\n";
         file << "File 2: " << results[i].file2 << "\n";
-        file << "Similarity: " << results[i].similarity << "%\n\n";
+        file << "Similarity: " << results[i].similarity << "%\n";   
+        file << "Category: " << results[i].category << "\n\n";
     }
 
     file.close();
@@ -77,7 +87,9 @@ void PlagiarismReport::saveJsonReport(string fileName)
         file << "      \"file2\": \""
              << escapeJson(results[i].file2) << "\",\n";
         file << "      \"similarity\": "
-             << results[i].similarity << "\n";
+             << results[i].similarity << ",\n";
+        file << "      \"category\": \""
+             << results[i].category << "\"\n";
         file << "    }";
 
         if (i < results.size() - 1)

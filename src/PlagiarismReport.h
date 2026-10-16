@@ -11,11 +11,12 @@ class PlagiarismReport
 {
 private:
     struct Result
-    {
-        string file1;
-        string file2;
-        double similarity;
-    };
+{
+    string file1;
+    string file2;
+    double similarity;
+    string category;
+};
 
     vector<Result> results;
 
