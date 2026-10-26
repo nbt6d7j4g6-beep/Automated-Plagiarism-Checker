@@ -1,0 +1,8 @@
+
+# Build output
+gui/build/
+plagiarism_checker.exe
+
+# Generated reports
+plagiarism_report.txt
+plagiarism_report.json

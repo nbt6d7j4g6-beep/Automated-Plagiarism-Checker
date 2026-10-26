@@ -1,5 +1,0 @@
-C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/CMakeFiles/PlagiarismCheckerGUI.dir
-C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/CMakeFiles/edit_cache.dir
-C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/CMakeFiles/rebuild_cache.dir
-C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/CMakeFiles/PlagiarismCheckerGUI_autogen_timestamp_deps.dir
-C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/CMakeFiles/PlagiarismCheckerGUI_autogen.dir
