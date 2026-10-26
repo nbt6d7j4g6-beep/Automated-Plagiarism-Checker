@@ -1,0 +1,8 @@
+# ninja log v6
+15	310	8147240799201178	PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
+15	310	8147240799201178	PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+15	310	8147240799201178	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
+15	310	8147240799201178	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+315	420	8147240799965330	CMakeFiles/PlagiarismCheckerGUI.dir/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp.obj	329a9325befc9b91
+323	3787	8147240800083333	CMakeFiles/PlagiarismCheckerGUI.dir/main.cpp.obj	a2c989989594dbdb
+3800	4082	8147240834789247	PlagiarismCheckerGUI.exe	185737d9861678dc
