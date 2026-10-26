@@ -1,24 +1,38 @@
+
 #include "FileManager.h"
 #include <fstream>
+#include <set>
+#include <stdexcept>
 
 vector<string> FileManager::findFiles(string folderPath)
 {
     vector<string> files;
 
-    for (const auto& entry : filesystem::directory_iterator(folderPath))
-    {
-        if (entry.is_regular_file())
-        {
-            string extension = entry.path().extension().string();
+    set<string> extensions = {
+        ".txt", ".cpp", ".h", ".hpp",
+        ".c", ".cc", ".cxx",
+        ".py", ".java", ".js", ".ts",
+        ".cs", ".php", ".html", ".css"
+    };
 
-            if (extension == ".txt" ||
-                extension == ".cpp" ||
-                extension == ".h" ||
-                extension == ".hpp")
+    try
+    {
+        for (const auto& entry : filesystem::directory_iterator(folderPath))
+        {
+            if (entry.is_regular_file())
             {
-                files.push_back(entry.path().string());
+                string extension = entry.path().extension().string();
+
+                if (extensions.find(extension) != extensions.end())
+                {
+                    files.push_back(entry.path().string());
+                }
             }
         }
+    }
+    catch (const filesystem::filesystem_error&)
+    {
+        return files;
     }
 
     return files;
