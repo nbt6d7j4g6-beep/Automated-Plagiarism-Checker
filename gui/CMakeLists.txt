@@ -16,9 +16,14 @@ qt_add_executable(PlagiarismCheckerGUI
     ../src/TextProcessor.cpp
     ../src/NGramGenerator.cpp
     ../src/SimilarityCalculator.cpp
+    ../src/ComparisonManager.cpp
     ../src/PlagiarismReport.cpp
 )
 
-target_include_directories(PlagiarismCheckerGUI PRIVATE ../src)
+target_include_directories(PlagiarismCheckerGUI PRIVATE
+    ../src
+)
 
-target_link_libraries(PlagiarismCheckerGUI PRIVATE Qt6::Widgets)
+target_link_libraries(PlagiarismCheckerGUI PRIVATE
+    Qt6::Widgets
+)
