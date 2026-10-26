@@ -1,15 +1,16 @@
-
 #include <iostream>
 #include <string>
+#include <vector>
+
 #include "ComparisonManager.h"
 #include "FileManager.h"
 #include "TextProcessor.h"
 #include "NGramGenerator.h"
 #include "SimilarityCalculator.h"
 #include "PlagiarismReport.h"
-using namespace std;
 
-void ComparisonManager::compareFiles(vector<string> files)
+using namespace std;
+vector<Result> ComparisonManager::compareFiles(vector<string> files)
 {
     FileManager manager;
     TextProcessor processor;
@@ -27,10 +28,7 @@ void ComparisonManager::compareFiles(vector<string> files)
             string text2 = manager.readFile(files[j]);
 
             if (text1.empty() || text2.empty())
-            {
-                cout << "Could not read a file." << endl;
                 continue;
-            }
 
             text1 = processor.processText(text1);
             text2 = processor.processText(text2);
@@ -41,18 +39,12 @@ void ComparisonManager::compareFiles(vector<string> files)
             double similarity =
                 calculator.calculateSimilarity(grams1, grams2);
 
-            cout << "\nFile 1: " << files[i] << endl;
-            cout << "File 2: " << files[j] << endl;
-            cout << "Similarity: " << similarity << "%" << endl;
-
-    report.addResult(files[i], files[j], similarity);
+            report.addResult(files[i], files[j], similarity);
         }
     }
 
     report.saveReport("plagiarism_report.txt");
     report.saveJsonReport("plagiarism_report.json");
 
-    cout << "\nText and JSON reports saved." << endl;
-
-   
+    return report.getResults();
 }

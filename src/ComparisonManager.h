@@ -4,12 +4,14 @@
 
 #include <string>
 #include <vector>
+#include "PlagiarismReport.h"
+
 using namespace std;
 
 class ComparisonManager
 {
 public:
-    void compareFiles(vector<string> files);
+    vector<Result> compareFiles(vector<string> files);
 };
 
 #endif

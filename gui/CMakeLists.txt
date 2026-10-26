@@ -12,6 +12,13 @@ qt_standard_project_setup()
 
 qt_add_executable(PlagiarismCheckerGUI
     main.cpp
+    ../src/FileManager.cpp
+    ../src/TextProcessor.cpp
+    ../src/NGramGenerator.cpp
+    ../src/SimilarityCalculator.cpp
+    ../src/PlagiarismReport.cpp
 )
+
+target_include_directories(PlagiarismCheckerGUI PRIVATE ../src)
 
 target_link_libraries(PlagiarismCheckerGUI PRIVATE Qt6::Widgets)

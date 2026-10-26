@@ -103,3 +103,7 @@ void PlagiarismReport::saveJsonReport(string fileName)
 
     file.close();
 }
+vector<Result> PlagiarismReport::getResults()
+{
+    return results;
+}

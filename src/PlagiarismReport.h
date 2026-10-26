@@ -1,4 +1,3 @@
-
 #ifndef PLAGIARISMREPORT_H
 #define PLAGIARISMREPORT_H
 
@@ -7,10 +6,7 @@
 
 using namespace std;
 
-class PlagiarismReport
-{
-private:
-    struct Result
+struct Result
 {
     string file1;
     string file2;
@@ -18,12 +14,16 @@ private:
     string category;
 };
 
+class PlagiarismReport
+{
+private:
     vector<Result> results;
 
 public:
     void addResult(string file1, string file2, double similarity);
     void saveReport(string fileName);
     void saveJsonReport(string fileName);
+    vector<Result> getResults();
 };
 
 #endif

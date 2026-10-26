@@ -1,8 +1,21 @@
 # ninja log v6
-15	310	8147240799201178	PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
-15	310	8147240799201178	PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
-15	310	8147240799201178	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
-15	310	8147240799201178	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+23	243	8147243132688185	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+23	243	8147243132688185	PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
+23	243	8147243132688185	PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+23	243	8147243132688185	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
 315	420	8147240799965330	CMakeFiles/PlagiarismCheckerGUI.dir/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp.obj	329a9325befc9b91
-323	3787	8147240800083333	CMakeFiles/PlagiarismCheckerGUI.dir/main.cpp.obj	a2c989989594dbdb
-3800	4082	8147240834789247	PlagiarismCheckerGUI.exe	185737d9861678dc
+245	5665	8147243134894060	CMakeFiles/PlagiarismCheckerGUI.dir/main.cpp.obj	a2c989989594dbdb
+5666	5930	8147243189119367	PlagiarismCheckerGUI.exe	185737d9861678dc
+124	1529	8147264530330698	build.ninja	5c124c26629686f5
+45	488	8147264531329501	PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
+45	488	8147264531329501	PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+45	488	8147264531329501	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/timestamp	6c77a8f490e1bcfd
+45	488	8147264531329501	C:/Users/rushi/Documents/Automated-Plagiarism-Checker/gui/build/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp	6c77a8f490e1bcfd
+490	638	8147264535793307	CMakeFiles/PlagiarismCheckerGUI.dir/PlagiarismCheckerGUI_autogen/mocs_compilation.cpp.obj	bd2fcd41a290c95c
+515	1289	8147264536032708	CMakeFiles/PlagiarismCheckerGUI.dir/C_/Users/rushi/Documents/Automated-Plagiarism-Checker/src/TextProcessor.cpp.obj	d51bc0b2e33ac326
+531	1514	8147264536211824	CMakeFiles/PlagiarismCheckerGUI.dir/C_/Users/rushi/Documents/Automated-Plagiarism-Checker/src/SimilarityCalculator.cpp.obj	7ef327f8db3b0aec
+541	1661	8147264536310736	CMakeFiles/PlagiarismCheckerGUI.dir/C_/Users/rushi/Documents/Automated-Plagiarism-Checker/src/PlagiarismReport.cpp.obj	462ffe1f9089a2d1
+523	1663	8147264536135120	CMakeFiles/PlagiarismCheckerGUI.dir/C_/Users/rushi/Documents/Automated-Plagiarism-Checker/src/NGramGenerator.cpp.obj	53c2b8ffe3ac183
+507	2030	8147264535973392	CMakeFiles/PlagiarismCheckerGUI.dir/C_/Users/rushi/Documents/Automated-Plagiarism-Checker/src/FileManager.cpp.obj	1304befe85872496
+498	5549	8147264535829297	CMakeFiles/PlagiarismCheckerGUI.dir/main.cpp.obj	371a50dfef68ec93
+5549	6039	8147264586398376	PlagiarismCheckerGUI.exe	c1a115702af7d7aa
