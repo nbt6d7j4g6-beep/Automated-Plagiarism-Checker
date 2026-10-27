@@ -1,4 +1,3 @@
-
 #include <QApplication>
 #include <QWidget>
 #include <QLabel>
@@ -24,6 +23,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "FileManager.h"
 #include "ComparisonManager.h"
@@ -190,6 +190,13 @@ int main(int argc, char *argv[])
     filterSelector->addItem("Medium Similarity");
     filterSelector->addItem("Low Similarity");
 
+    // Result sorting
+QLabel *sortLabel = new QLabel("Sort Results:");
+
+QComboBox *sortSelector = new QComboBox();
+sortSelector->addItem("Highest Similarity First");
+sortSelector->addItem("Lowest Similarity First");
+
     QPushButton *checkButton =
         new QPushButton("Check Similarity");
 
@@ -337,9 +344,23 @@ progressBar->setStyleSheet(
         QString selectedFilter =
             filterSelector->currentText();
 
+        vector<Result> sortedResults = allResults;
+
+bool highestFirst =
+    sortSelector->currentText() == "Highest Similarity First";
+
+sort(sortedResults.begin(), sortedResults.end(),
+    [highestFirst](const Result &a, const Result &b)
+    {
+        if (highestFirst)
+            return a.similarity > b.similarity;
+
+        return a.similarity < b.similarity;
+    });
+
         int displayedCount = 0;
 
-        for (const Result &result : allResults)
+        for (const Result &result : sortedResults)
         {
             if (selectedFilter == "High Similarity" &&
                 result.category != "High")
@@ -440,6 +461,12 @@ progressBar->setStyleSheet(
         }
     );
 
+    QObject::connect(sortSelector, &QComboBox::currentTextChanged,
+                 [&](const QString &)
+                 {
+                     displayResults();
+                 });
+
     // Scrollable application page
     QScrollArea *scrollArea = new QScrollArea(&window);
     scrollArea->setWidgetResizable(true);
@@ -475,6 +502,8 @@ progressBar->setStyleSheet(
     layout->addWidget(ngramSelector);
     layout->addWidget(filterLabel);
     layout->addWidget(filterSelector);
+    layout->addWidget(sortLabel);
+    layout->addWidget(sortSelector);
 
     // Four summary cards in one row
     QHBoxLayout *dashboardLayout = new QHBoxLayout();
