@@ -140,6 +140,36 @@ int main(int argc, char *argv[])
     // Create a table with five columns
     QTableWidget *table = new QTableWidget(0, 5);
 
+    
+table->setStyleSheet(
+    "QTableWidget {"
+    "    background-color: #1F2937;"
+    "    alternate-background-color: #273449;"
+    "    color: #F9FAFB;"
+    "    gridline-color: #374151;"
+    "    border: 1px solid #374151;"
+    "    border-radius: 6px;"
+    "    selection-background-color: #2563EB;"
+    "    selection-color: white;"
+    "}"
+
+    "QHeaderView::section {"
+    "    background-color: #1E3A5F;"
+    "    color: white;"
+    "    padding: 8px;"
+    "    border: 1px solid #374151;"
+    "    font-weight: bold;"
+    "}"
+
+    "QTableWidget::item {"
+    "    padding: 6px;"
+    "    border-bottom: 1px solid #374151;"
+    "}"
+);
+
+table->setAlternatingRowColors(true);
+
+
     table->setHorizontalHeaderLabels(
         {"File 1", "File 2", "Similarity", "Category",
          "Matching Text Fragments"}
