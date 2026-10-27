@@ -90,6 +90,8 @@ int main(int argc, char *argv[])
             return;
         }
 
+        table->setRowCount(0);
+
         FileManager fileManager;
         vector<string> files =
             fileManager.findFiles(selectedFolder.toStdString());
