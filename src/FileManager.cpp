@@ -1,7 +1,8 @@
-
 #include "FileManager.h"
 #include <fstream>
 #include <set>
+#include <algorithm>
+#include <cctype> 
 #include <stdexcept>
 
 vector<string> FileManager::findFiles(string folderPath)
@@ -22,6 +23,10 @@ vector<string> FileManager::findFiles(string folderPath)
             if (entry.is_regular_file())
             {
                 string extension = entry.path().extension().string();
+
+                    transform(extension.begin(), extension.end(),
+                    extension.begin(),
+                      [](unsigned char c) { return tolower(c); });
 
                 if (extensions.find(extension) != extensions.end())
                 {
