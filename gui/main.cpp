@@ -106,21 +106,22 @@ int main(int argc, char *argv[])
     window.setWindowTitle("Automated Plagiarism Checker");
     window.resize(1100, 700);
 
+    
     window.setStyleSheet(
         "QWidget {"
         "    background-color: #111827;"
-        "    color: #F9FAFB;"
-        "    font-family: Segoe UI;"
+        "    color: #F3F4F6;"
+        "    font-family: 'Segoe UI';"
         "    font-size: 10pt;"
         "}"
 
         "QPushButton {"
         "    background-color: #2563EB;"
-        "    color: white;"
-        "    border: none;"
-        "    border-radius: 6px;"
-        "    padding: 8px 14px;"
-        "    font-weight: bold;"
+        "    color: #FFFFFF;"
+        "    border: 1px solid #3B82F6;"
+        "    border-radius: 7px;"
+        "    padding: 9px 16px;"
+        "    font-weight: 600;"
         "}"
 
         "QPushButton:hover {"
@@ -131,24 +132,70 @@ int main(int argc, char *argv[])
         "    background-color: #1E40AF;"
         "}"
 
-        "QComboBox {"
+        "QPushButton:disabled {"
+        "    background-color: #374151;"
+        "    color: #9CA3AF;"
+        "    border-color: #374151;"
+        "}"
+
+        "QComboBox, QLineEdit {"
         "    background-color: #1F2937;"
-        "    color: white;"
-        "    border: 1px solid #374151;"
-        "    border-radius: 5px;"
-        "    padding: 6px;"
+        "    color: #F9FAFB;"
+        "    border: 1px solid #4B5563;"
+        "    border-radius: 7px;"
+        "    padding: 8px 10px;"
+        "    selection-background-color: #2563EB;"
+        "}"
+
+        "QComboBox:hover, QLineEdit:hover {"
+        "    border-color: #60A5FA;"
+        "}"
+
+        "QComboBox:focus, QLineEdit:focus {"
+        "    border: 1px solid #60A5FA;"
         "}"
 
         "QComboBox QAbstractItemView {"
         "    background-color: #1F2937;"
-        "    color: white;"
+        "    color: #F9FAFB;"
+        "    border: 1px solid #4B5563;"
         "    selection-background-color: #2563EB;"
+        "    selection-color: #FFFFFF;"
         "}"
 
         "QLabel {"
         "    color: #E5E7EB;"
         "}"
+
+        "QScrollBar:vertical {"
+        "    background-color: #111827;"
+        "    width: 10px;"
+        "    margin: 0px;"
+        "}"
+
+        "QScrollBar::handle:vertical {"
+        "    background-color: #4B5563;"
+        "    min-height: 25px;"
+        "    border-radius: 4px;"
+        "}"
+
+        "QScrollBar::handle:vertical:hover {"
+        "    background-color: #6B7280;"
+        "}"
+
+        "QScrollBar::add-line:vertical,"
+        "QScrollBar::sub-line:vertical {"
+        "    height: 0px;"
+        "}"
+
+        "QToolTip {"
+        "    background-color: #1F2937;"
+        "    color: #F9FAFB;"
+        "    border: 1px solid #4B5563;"
+        "    padding: 5px;"
+        "}"
     );
+
 
     // Application heading
     QLabel *title = new QLabel("Automated Plagiarism Checker");
