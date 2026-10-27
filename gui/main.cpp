@@ -20,6 +20,7 @@
 #include <QFrame>
 #include <QProgressBar>
 #include <QTimer>
+#include <QLineEdit>
 
 #include <string>
 #include <vector>
@@ -191,11 +192,17 @@ int main(int argc, char *argv[])
     filterSelector->addItem("Low Similarity");
 
     // Result sorting
-QLabel *sortLabel = new QLabel("Sort Results:");
+    QLabel *sortLabel = new QLabel("Sort Results:");
 
-QComboBox *sortSelector = new QComboBox();
-sortSelector->addItem("Highest Similarity First");
-sortSelector->addItem("Lowest Similarity First");
+    QComboBox *sortSelector = new QComboBox();
+    sortSelector->addItem("Highest Similarity First");
+    sortSelector->addItem("Lowest Similarity First");
+
+    // Search results by filename
+    QLabel *searchLabel = new QLabel("Search by Filename:");
+
+    QLineEdit *searchInput = new QLineEdit();
+    searchInput->setPlaceholderText("Enter a filename...");
 
     QPushButton *checkButton =
         new QPushButton("Check Similarity");
@@ -344,6 +351,9 @@ progressBar->setStyleSheet(
         QString selectedFilter =
             filterSelector->currentText();
 
+        QString searchText =
+            searchInput->text().trimmed();
+
         vector<Result> sortedResults = allResults;
 
 bool highestFirst =
@@ -362,6 +372,16 @@ sort(sortedResults.begin(), sortedResults.end(),
 
         for (const Result &result : sortedResults)
         {
+
+            QString file1Name = QString::fromStdString(result.file1);
+            QString file2Name = QString::fromStdString(result.file2);
+
+            if (!searchText.isEmpty() &&
+                !file1Name.contains(searchText, Qt::CaseSensitive) &&
+                !file2Name.contains(searchText, Qt::CaseSensitive))
+                {
+                    continue;
+                }
             if (selectedFilter == "High Similarity" &&
                 result.category != "High")
             {
@@ -467,6 +487,11 @@ sort(sortedResults.begin(), sortedResults.end(),
                      displayResults();
                  });
 
+    QObject::connect(searchInput, &QLineEdit::textChanged,
+    [&](const QString &)
+      {
+     displayResults();
+      });
     // Scrollable application page
     QScrollArea *scrollArea = new QScrollArea(&window);
     scrollArea->setWidgetResizable(true);
@@ -504,6 +529,8 @@ sort(sortedResults.begin(), sortedResults.end(),
     layout->addWidget(filterSelector);
     layout->addWidget(sortLabel);
     layout->addWidget(sortSelector);
+    layout->addWidget(searchLabel);
+    layout->addWidget(searchInput);
 
     // Four summary cards in one row
     QHBoxLayout *dashboardLayout = new QHBoxLayout();
