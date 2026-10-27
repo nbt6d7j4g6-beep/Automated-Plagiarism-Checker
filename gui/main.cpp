@@ -1,3 +1,4 @@
+
 #include <QApplication>
 #include <QWidget>
 #include <QLabel>
@@ -50,17 +51,27 @@ int main(int argc, char *argv[])
     ngramSelector->addItem("5 words", 5);
     ngramSelector->setCurrentIndex(1);
 
+    QLabel *filterLabel = new QLabel("Filter Results:");
+
+    QComboBox *filterSelector = new QComboBox();
+    filterSelector->addItem("All Categories");
+    filterSelector->addItem("High Similarity");
+    filterSelector->addItem("Medium Similarity");
+    filterSelector->addItem("Low Similarity");
+
+    QPushButton *checkButton = new QPushButton("Check Similarity");
+
     QLabel *statusLabel = new QLabel(
         "Ready - select a folder to begin"
     );
+
     statusLabel->setStyleSheet(
         "color: #16a34a; font-size: 14px; font-weight: bold;"
     );
 
-    QPushButton *checkButton = new QPushButton("Check Similarity");
-
     // Create a table with five columns
     QTableWidget *table = new QTableWidget(0, 5);
+
     table->setHorizontalHeaderLabels(
         {"File 1", "File 2", "Similarity", "Category",
          "Matching Text Fragments"}
@@ -72,123 +83,40 @@ int main(int argc, char *argv[])
 
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setWordWrap(true);
+
     table->verticalHeader()->setSectionResizeMode(
         QHeaderView::ResizeToContents
     );
 
     QString selectedFolder;
+    vector<Result> allResults;
 
-    QVBoxLayout *layout = new QVBoxLayout(&window);
-
-    layout->addWidget(title);
-    layout->addWidget(description);
-    layout->addSpacing(15);
-    layout->addWidget(selectButton);
-    layout->addWidget(folderLabel);
-    layout->addWidget(ngramLabel);
-    layout->addWidget(ngramSelector);
-    layout->addWidget(statusLabel);
-    layout->addWidget(checkButton);
-    layout->addWidget(table);
-
-    // Select Folder button
-    QObject::connect(
-        selectButton, &QPushButton::clicked,
-        [&window, &selectedFolder, folderLabel, table, statusLabel]()
+    // Display results according to the selected category
+    auto displayResults = [&]()
     {
-        QString folder = QFileDialog::getExistingDirectory(
-            &window, "Select Folder"
-        );
-
-        if (!folder.isEmpty())
-        {
-            selectedFolder = folder;
-            folderLabel->setText(folder);
-            table->setRowCount(0);
-
-            statusLabel->setText(
-                "Folder selected - ready to compare"
-            );
-            statusLabel->setStyleSheet(
-                "color: #2563eb; font-size: 14px; font-weight: bold;"
-            );
-        }
-    });
-
-    // Check Similarity button
-    QObject::connect(
-        checkButton, &QPushButton::clicked,
-        [&window, &selectedFolder, table, statusLabel, ngramSelector]()
-    {
-        if (selectedFolder.isEmpty())
-        {
-            statusLabel->setText("Please select a folder first");
-            statusLabel->setStyleSheet(
-                "color: #dc2626; font-size: 14px; font-weight: bold;"
-            );
-
-            QMessageBox::warning(
-                &window, "Select Folder",
-                "Please select a folder first."
-            );
-            return;
-        }
-
         table->setRowCount(0);
 
-        statusLabel->setText("Comparing files...");
-        statusLabel->setStyleSheet(
-            "color: #d97706; font-size: 14px; font-weight: bold;"
-        );
+        QString selectedFilter = filterSelector->currentText();
+        int displayedCount = 0;
 
-        QApplication::processEvents();
-
-        FileManager fileManager;
-
-        vector<string> files =
-            fileManager.findFiles(selectedFolder.toStdString());
-
-        if (files.size() < 2)
+        for (const Result &result : allResults)
         {
-            statusLabel->setText("Not enough files to compare");
-            statusLabel->setStyleSheet(
-                "color: #dc2626; font-size: 14px; font-weight: bold;"
-            );
+            if (selectedFilter == "High Similarity" &&
+                result.category != "High")
+                continue;
 
-            QMessageBox::information(
-                &window, "Not Enough Files",
-                "Select a folder containing at least two readable files."
-            );
-            return;
-        }
+            if (selectedFilter == "Medium Similarity" &&
+                result.category != "Moderate" &&
+                result.category != "Medium")
+                continue;
 
-        ComparisonManager comparison;
+            if (selectedFilter == "Low Similarity" &&
+                result.category != "Low")
+                continue;
 
-        // Get the selected n-gram size
-        int n = ngramSelector->currentData().toInt();
-
-        vector<Result> results = comparison.compareFiles(files, n);
-
-        if (results.empty())
-        {
-            statusLabel->setText("No comparison results available");
-            statusLabel->setStyleSheet(
-                "color: #dc2626; font-size: 14px; font-weight: bold;"
-            );
-
-            QMessageBox::warning(
-                &window, "No Results",
-                "No comparisons could be completed. "
-                "Check that the selected files contain readable text."
-            );
-            return;
-        }
-
-        // Display each comparison and its matching fragments
-        for (const Result &result : results)
-        {
             int row = table->rowCount();
             table->insertRow(row);
+            displayedCount++;
 
             QString file1 = QFileInfo(
                 QString::fromStdString(result.file1)
@@ -227,38 +155,175 @@ int main(int argc, char *argv[])
                 fragments.append(QString::fromStdString(gram));
             }
 
-            QString matchingText;
-
-            if (fragments.isEmpty())
-            {
-                matchingText = "No matching fragments";
-            }
-            else
-            {
-                matchingText = fragments.join("\n");
-            }
+            QString matchingText = fragments.isEmpty()
+                ? "No matching fragments"
+                : fragments.join("\n");
 
             table->setItem(
-                row, 4,
-                new QTableWidgetItem(matchingText)
+                row, 4, new QTableWidgetItem(matchingText)
             );
         }
 
         statusLabel->setText(
-            "Comparison completed successfully"
+            QString("%1 comparison results displayed")
+                .arg(displayedCount)
         );
+
         statusLabel->setStyleSheet(
             "color: #16a34a; font-size: 14px; font-weight: bold;"
         );
+    };
 
-        QMessageBox::information(
-            &window, "Comparison Complete",
-            QString(
-                "Compared %1 file pairs.\n"
-                "Text and JSON reports have been saved."
-            ).arg(results.size())
-        );
-    });
+    // Update the table immediately when the filter changes
+    QObject::connect(
+        filterSelector,
+        &QComboBox::currentTextChanged,
+        [&displayResults](const QString &)
+        {
+            displayResults();
+        }
+    );
+
+    QVBoxLayout *layout = new QVBoxLayout(&window);
+
+    layout->addWidget(title);
+    layout->addWidget(description);
+    layout->addSpacing(15);
+    layout->addWidget(selectButton);
+    layout->addWidget(folderLabel);
+    layout->addWidget(ngramLabel);
+    layout->addWidget(ngramSelector);
+    layout->addWidget(filterLabel);
+    layout->addWidget(filterSelector);
+    layout->addWidget(statusLabel);
+    layout->addWidget(checkButton);
+    layout->addWidget(table);
+
+    // Select Folder button
+    QObject::connect(
+        selectButton, &QPushButton::clicked,
+        [&window, &selectedFolder, &allResults,
+         folderLabel, table, statusLabel]()
+        {
+            QString folder = QFileDialog::getExistingDirectory(
+                &window, "Select Folder"
+            );
+
+            if (!folder.isEmpty())
+            {
+                selectedFolder = folder;
+                allResults.clear();
+
+                folderLabel->setText(folder);
+                table->setRowCount(0);
+
+                statusLabel->setText(
+                    "Folder selected - ready to compare"
+                );
+
+                statusLabel->setStyleSheet(
+                    "color: #2563eb; font-size: 14px; font-weight: bold;"
+                );
+            }
+        }
+    );
+
+    // Check Similarity button
+    QObject::connect(
+        checkButton, &QPushButton::clicked,
+        [&window, &selectedFolder, &allResults, &displayResults,
+         table, statusLabel, ngramSelector]()
+        {
+            if (selectedFolder.isEmpty())
+            {
+                statusLabel->setText(
+                    "Please select a folder first"
+                );
+
+                statusLabel->setStyleSheet(
+                    "color: #dc2626; font-size: 14px; font-weight: bold;"
+                );
+
+                QMessageBox::warning(
+                    &window, "Select Folder",
+                    "Please select a folder first."
+                );
+
+                return;
+            }
+
+            table->setRowCount(0);
+
+            statusLabel->setText("Comparing files...");
+            statusLabel->setStyleSheet(
+                "color: #d97706; font-size: 14px; font-weight: bold;"
+            );
+
+            QApplication::processEvents();
+
+            FileManager fileManager;
+
+            vector<string> files =
+                fileManager.findFiles(selectedFolder.toStdString());
+
+            if (files.size() < 2)
+            {
+                allResults.clear();
+
+                statusLabel->setText(
+                    "Not enough files to compare"
+                );
+
+                statusLabel->setStyleSheet(
+                    "color: #dc2626; font-size: 14px; font-weight: bold;"
+                );
+
+                QMessageBox::information(
+                    &window, "Not Enough Files",
+                    "Select a folder containing at least two readable files."
+                );
+
+                return;
+            }
+
+            ComparisonManager comparison;
+
+            // Get the selected n-gram size
+            int n = ngramSelector->currentData().toInt();
+
+            allResults = comparison.compareFiles(files, n);
+
+            if (allResults.empty())
+            {
+                statusLabel->setText(
+                    "No comparison results available"
+                );
+
+                statusLabel->setStyleSheet(
+                    "color: #dc2626; font-size: 14px; font-weight: bold;"
+                );
+
+                QMessageBox::warning(
+                    &window, "No Results",
+                    "No comparisons could be completed. "
+                    "Check that the selected files contain readable text."
+                );
+
+                return;
+            }
+
+            // Display results using the currently selected filter
+            displayResults();
+
+            QMessageBox::information(
+                &window, "Comparison Complete",
+                QString(
+                    "Compared %1 file pairs.\n"
+                    "Text and JSON reports have been saved."
+                ).arg(allResults.size())
+            );
+        }
+    );
 
     window.show();
 
