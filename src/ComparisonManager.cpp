@@ -12,15 +12,13 @@
 
 using namespace std;
 
-vector<Result> ComparisonManager::compareFiles(vector<string> files)
+vector<Result> ComparisonManager::compareFiles(vector<string> files, int n)
 {
     FileManager manager;
     TextProcessor processor;
     NGramGenerator generator;
     SimilarityCalculator calculator;
     PlagiarismReport report;
-
-    int n = 3;
 
     for (int i = 0; i < files.size(); i++)
     {
@@ -51,7 +49,7 @@ vector<Result> ComparisonManager::compareFiles(vector<string> files)
     }
 
     report.saveReport("plagiarism_report.txt");
-    report.saveJsonReport("plagiarism_report.json");
+    report.saveJsonReport("plagiarism_report.json", n);
 
     return report.getResults();
 }

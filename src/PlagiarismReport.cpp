@@ -87,7 +87,7 @@ void PlagiarismReport::saveReport(string fileName)
     file.close();
 }
 
-void PlagiarismReport::saveJsonReport(string fileName)
+void PlagiarismReport::saveJsonReport(string fileName, int n)
 {
     ofstream file(fileName);
 
@@ -97,7 +97,7 @@ void PlagiarismReport::saveJsonReport(string fileName)
     file << fixed << setprecision(2);
     file << "{\n";
     file << "  \"project\": \"Automated Plagiarism Checker\",\n";
-    file << "  \"n_gram_size\": 3,\n";
+    file << "  \"n_gram_size\": " << n << ",\n";
     file << "  \"results\": [\n";
 
     for (int i = 0; i < results.size(); i++)

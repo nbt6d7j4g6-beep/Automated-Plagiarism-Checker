@@ -26,7 +26,7 @@ public:
     string file1, string file2, double similarity,
     vector<string> matchingNGrams);
     void saveReport(string fileName);
-    void saveJsonReport(string fileName);
+    void saveJsonReport(string fileName, int n = 3);
     vector<Result> getResults();
 };
 

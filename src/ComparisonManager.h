@@ -11,7 +11,7 @@ using namespace std;
 class ComparisonManager
 {
 public:
-    vector<Result> compareFiles(vector<string> files);
+    vector<Result> compareFiles(vector<string> files, int n = 3);
 };
 
 #endif
