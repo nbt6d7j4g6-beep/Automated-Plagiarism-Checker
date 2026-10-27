@@ -12,6 +12,9 @@
 #include <QStringList>
 #include <QAbstractItemView>
 #include <QComboBox>
+#include <QFile>
+#include <QTextStream>
+#include <QSaveFile>
 
 #include <string>
 #include <vector>
@@ -60,6 +63,7 @@ int main(int argc, char *argv[])
     filterSelector->addItem("Low Similarity");
 
     QPushButton *checkButton = new QPushButton("Check Similarity");
+    QPushButton *exportButton = new QPushButton("Export Results to CSV");
 
     QLabel *statusLabel = new QLabel(
         "Ready - select a folder to begin"
@@ -216,6 +220,7 @@ int main(int argc, char *argv[])
 
     layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
+    layout->addWidget(exportButton);
     layout->addWidget(table);
 
     // Select Folder button
@@ -373,6 +378,107 @@ int main(int argc, char *argv[])
                     "Compared %1 file pairs.\n"
                     "Text and JSON reports have been saved."
                 ).arg(allResults.size())
+            );
+        }
+    );
+
+    // Export Results to CSV
+QObject::connect(
+    exportButton, &QPushButton::clicked,
+    [&window, &allResults]()
+    {
+        if (allResults.empty())
+        {
+            QMessageBox::warning(
+                &window,
+                "No Results",
+                "Please check similarity before exporting results."
+            );
+            return;
+        }
+
+            QString fileName = QFileDialog::getSaveFileName(
+                &window,
+                "Export Results to CSV",
+                "plagiarism_results.csv",
+                "CSV Files (*.csv)"
+            );
+
+            if (fileName.isEmpty())
+                return;
+
+            if (!fileName.endsWith(".csv", Qt::CaseInsensitive))
+                fileName += ".csv";
+
+            QSaveFile file(fileName);
+
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            {
+                QMessageBox::critical(
+                    &window,
+                    "Export Failed",
+                    "Could not create the CSV file."
+                );
+                return;
+            }
+
+            QTextStream out(&file);
+
+            // Write the CSV header
+            out << "\"File 1\",\"File 2\",\"Similarity (%)\","
+                "\"Category\",\"Matching Text Fragments\"\n";
+
+            // Export every comparison result
+            for (const Result &result : allResults)
+            {
+                QString file1 = QFileInfo(
+                    QString::fromStdString(result.file1)
+                ).fileName();
+
+                QString file2 = QFileInfo(
+                    QString::fromStdString(result.file2)
+                ).fileName();
+
+                QStringList fragments;
+
+                for (const string &gram : result.matchingNGrams)
+                {
+                    fragments.append(QString::fromStdString(gram));
+                }
+
+                QString matchingText = fragments.isEmpty()
+                    ? "No matching fragments"
+                    : fragments.join("; ");
+
+                // Escape double quotes for valid CSV
+                file1.replace("\"", "\"\"");
+                file2.replace("\"", "\"\"");
+                matchingText.replace("\"", "\"\"");
+
+                QString category = QString::fromStdString(result.category);
+                category.replace("\"", "\"\"");
+
+                out << "\"" << file1 << "\","
+                    << "\"" << file2 << "\","
+                    << QString::number(result.similarity, 'f', 2) << ","
+                    << "\"" << category << "\","
+                    << "\"" << matchingText << "\"\n";
+            }
+
+            if (!file.commit())
+            {
+                QMessageBox::critical(
+                    &window,
+                    "Export Failed",
+                    "Could not save the CSV file."
+                );
+                return;
+            }
+
+                QMessageBox::information(
+                &window,
+                "Export Successful",
+                "Comparison results exported successfully."
             );
         }
     );
