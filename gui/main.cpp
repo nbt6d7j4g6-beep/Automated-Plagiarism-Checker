@@ -106,6 +106,18 @@ int main(int argc, char *argv[])
         ComparisonManager comparison;
         vector<Result> results = comparison.compareFiles(files);
 
+        if (results.empty())
+        {
+                table->setRowCount(0);
+
+                QMessageBox::warning(
+                &window, "No Results",
+                "No comparisons could be completed. "
+                "Please check that the selected files contain readable text."
+                );
+            return;
+        }
+
         table->setRowCount(0);
 
         for (const Result &result : results)
