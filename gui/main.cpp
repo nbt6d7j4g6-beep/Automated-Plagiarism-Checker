@@ -19,6 +19,8 @@
 #include <QSaveFile>
 #include <QScrollArea>
 #include <QFrame>
+#include <QProgressBar>
+#include <QTimer>
 
 #include <string>
 #include <vector>
@@ -197,6 +199,29 @@ int main(int argc, char *argv[])
     QLabel *statusLabel = new QLabel(
         "Ready - select a folder to begin"
     );
+
+    // Progress bar for file comparison
+QProgressBar *progressBar = new QProgressBar();
+
+progressBar->setRange(0, 100);
+progressBar->setValue(0);
+progressBar->setTextVisible(true);
+progressBar->setFormat("%p% completed");
+progressBar->setMinimumHeight(22);
+
+progressBar->setStyleSheet(
+    "QProgressBar {"
+    "    background-color: #1F2937;"
+    "    color: white;"
+    "    border: 1px solid #374151;"
+    "    border-radius: 5px;"
+    "    text-align: center;"
+    "}"
+    "QProgressBar::chunk {"
+    "    background-color: #2563EB;"
+    "    border-radius: 4px;"
+    "}"
+);
 
     statusLabel->setStyleSheet(
         "color: #4ADE80;"
@@ -464,6 +489,7 @@ int main(int argc, char *argv[])
 
     layout->addWidget(pieChart);
     layout->addWidget(statusLabel);
+    layout->addWidget(progressBar);
     layout->addWidget(checkButton);
     layout->addWidget(exportButton);
     layout->addWidget(table, 1);
@@ -519,7 +545,7 @@ int main(int argc, char *argv[])
         [&window, &selectedFolder, &allResults,
          &displayResults, table, statusLabel,
          ngramSelector, totalNumber, highNumber,
-         moderateNumber, lowNumber, pieChart]()
+         moderateNumber, lowNumber, pieChart,progressBar]()
         {
             if (selectedFolder.isEmpty())
             {
@@ -584,7 +610,30 @@ int main(int argc, char *argv[])
 
             int n = ngramSelector->currentData().toInt();
 
-            allResults = comparison.compareFiles(files, n);
+            
+progressBar->setValue(0);
+
+allResults = comparison.compareFiles(
+    files,
+    n,
+    [progressBar, statusLabel](int completed, int total)
+    {
+        if (total > 0)
+        {
+            int percentage = completed * 100 / total;
+            progressBar->setValue(percentage);
+
+            statusLabel->setText(
+                QString("Comparing file pair %1 of %2...")
+                    .arg(completed)
+                    .arg(total)
+            );
+
+            QApplication::processEvents();
+        }
+    }
+);
+
 
             // Count results by category
             int highCount = 0;

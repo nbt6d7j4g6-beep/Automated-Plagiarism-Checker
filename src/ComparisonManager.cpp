@@ -12,13 +12,19 @@
 
 using namespace std;
 
-vector<Result> ComparisonManager::compareFiles(vector<string> files, int n)
+vector<Result> ComparisonManager::compareFiles(
+    vector<string> files,
+    int n,
+    function<void(int, int)> progressCallback)
 {
     FileManager manager;
     TextProcessor processor;
     NGramGenerator generator;
     SimilarityCalculator calculator;
     PlagiarismReport report;
+
+    int totalPairs = files.size() * (files.size() - 1) / 2;
+    int completedPairs = 0;
 
     for (int i = 0; i < files.size(); i++)
     {
@@ -27,24 +33,37 @@ vector<Result> ComparisonManager::compareFiles(vector<string> files, int n)
             string text1 = manager.readFile(files[i]);
             string text2 = manager.readFile(files[j]);
 
-            if (text1.empty() || text2.empty())
-                continue;
+            if (!text1.empty() && !text2.empty())
+            {
+                text1 = processor.processText(text1);
+                text2 = processor.processText(text2);
 
-            text1 = processor.processText(text1);
-            text2 = processor.processText(text2);
+                vector<string> grams1 =
+                    generator.generateNGrams(text1, n);
 
-            vector<string> grams1 = generator.generateNGrams(text1, n);
-            vector<string> grams2 = generator.generateNGrams(text2, n);
+                vector<string> grams2 =
+                    generator.generateNGrams(text2, n);
 
-            double similarity =
-                calculator.calculateSimilarity(grams1, grams2);
+                double similarity =
+                    calculator.calculateSimilarity(grams1, grams2);
 
-            // Find the matching text fragments
-            vector<string> matches =
-                calculator.findMatchingNGrams(grams1, grams2);
+                vector<string> matches =
+                    calculator.findMatchingNGrams(grams1, grams2);
 
-            // Save the similarity and matching fragments
-            report.addResult(files[i], files[j], similarity, matches);
+                report.addResult(
+                    files[i],
+                    files[j],
+                    similarity,
+                    matches
+                );
+            }
+
+            completedPairs++;
+
+            if (progressCallback)
+            {
+                progressCallback(completedPairs, totalPairs);
+            }
         }
     }
 
