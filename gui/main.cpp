@@ -69,6 +69,18 @@ int main(int argc, char *argv[])
         "color: #16a34a; font-size: 14px; font-weight: bold;"
     );
 
+    // Similarity Summary Dashboard
+    QLabel *totalLabel = new QLabel("Total Comparisons: 0");
+    QLabel *highLabel = new QLabel("High Similarity: 0");
+    QLabel *moderateLabel = new QLabel("Moderate Similarity: 0");
+    QLabel *lowLabel = new QLabel("Low Similarity: 0");
+
+    // Style the dashboard labels
+    totalLabel->setStyleSheet("font-size: 14px; font-weight: bold;");
+    highLabel->setStyleSheet("font-size: 14px; color: #dc2626;");
+    moderateLabel->setStyleSheet("font-size: 14px; color: #d97706;");
+    lowLabel->setStyleSheet("font-size: 14px; color: #16a34a;");
+
     // Create a table with five columns
     QTableWidget *table = new QTableWidget(0, 5);
 
@@ -195,6 +207,13 @@ int main(int argc, char *argv[])
     layout->addWidget(ngramSelector);
     layout->addWidget(filterLabel);
     layout->addWidget(filterSelector);
+
+    // Similarity Summary Dashboard
+    layout->addWidget(totalLabel);
+    layout->addWidget(highLabel);
+    layout->addWidget(moderateLabel);
+    layout->addWidget(lowLabel);
+
     layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
     layout->addWidget(table);
@@ -232,7 +251,8 @@ int main(int argc, char *argv[])
     QObject::connect(
         checkButton, &QPushButton::clicked,
         [&window, &selectedFolder, &allResults, &displayResults,
-         table, statusLabel, ngramSelector]()
+        table, statusLabel, ngramSelector,
+        totalLabel, highLabel, moderateLabel, lowLabel]()
         {
             if (selectedFolder.isEmpty())
             {
@@ -292,6 +312,38 @@ int main(int argc, char *argv[])
             int n = ngramSelector->currentData().toInt();
 
             allResults = comparison.compareFiles(files, n);
+
+            // Update Similarity Summary Dashboard
+    int highCount = 0;
+    int moderateCount = 0;
+    int lowCount = 0;
+
+    for (const Result &result : allResults)
+    {
+        if (result.category == "High")
+            highCount++;
+        else if (result.category == "Moderate" ||
+                result.category == "Medium")
+            moderateCount++;
+        else if (result.category == "Low")
+            lowCount++;
+    }
+
+    totalLabel->setText(
+       QString("Total Comparisons: %1").arg(allResults.size())
+    );
+
+    highLabel->setText(
+        QString("High Similarity: %1").arg(highCount)
+    );
+
+    moderateLabel->setText(
+        QString("Moderate Similarity: %1").arg(moderateCount)
+    );
+
+    lowLabel->setText(
+        QString("Low Similarity: %1").arg(lowCount)
+    );
 
             if (allResults.empty())
             {
