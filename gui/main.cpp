@@ -31,6 +31,53 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     QWidget window;
+
+    window.setStyleSheet(
+    "QWidget {"
+    "    background-color: #111827;"
+    "    color: #F9FAFB;"
+    "    font-family: Segoe UI;"
+    "    font-size: 10pt;"
+    "}"
+
+    "QPushButton {"
+    "    background-color: #2563EB;"
+    "    color: white;"
+    "    border: none;"
+    "    border-radius: 6px;"
+    "    padding: 8px 14px;"
+    "    font-weight: bold;"
+    "}"
+
+    "QPushButton:hover {"
+    "    background-color: #1D4ED8;"
+    "}"
+
+    "QPushButton:pressed {"
+    "    background-color: #1E40AF;"
+    "}"
+
+    "QComboBox {"
+    "    background-color: #1F2937;"
+    "    color: white;"
+    "    border: 1px solid #374151;"
+    "    border-radius: 5px;"
+    "    padding: 6px;"
+    "}"
+
+    "QLineEdit {"
+    "    background-color: #1F2937;"
+    "    color: white;"
+    "    border: 1px solid #374151;"
+    "    border-radius: 5px;"
+    "    padding: 6px;"
+    "}"
+
+    "QLabel {"
+    "    color: #E5E7EB;"
+    "}"
+);
+
     window.setWindowTitle("Automated Plagiarism Checker");
     window.resize(1100, 600);
 
