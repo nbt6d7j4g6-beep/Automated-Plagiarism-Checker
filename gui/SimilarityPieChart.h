@@ -7,6 +7,8 @@
 #include <QPaintEvent>
 #include <QColor>
 #include <QStringList>
+#include <QRect>
+#include <QtMath>
 #include <vector>
 
 using namespace std;
@@ -33,8 +35,12 @@ protected:
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
 
+        // Set readable text color for the dark theme
+        painter.setPen(QColor("#F9FAFB"));
+
         int total = counts[0] + counts[1] + counts[2];
 
+        // Chart title
         painter.drawText(
             10, 25,
             "Similarity Category Distribution"
@@ -79,6 +85,7 @@ protected:
             int spanAngle =
                 (counts[i] * 360 * 16) / total;
 
+            // Draw pie slice
             painter.setBrush(colors[i]);
             painter.setPen(Qt::white);
 
@@ -90,6 +97,7 @@ protected:
 
             startAngle -= spanAngle;
 
+            // Draw legend color box
             int legendY = 80 + i * 45;
 
             painter.setBrush(colors[i]);
@@ -100,7 +108,8 @@ protected:
                 16
             );
 
-            painter.setPen(Qt::black);
+            // Set light text color for the legend
+            painter.setPen(QColor("#F9FAFB"));
 
             double percentage =
                 (counts[i] * 100.0) / total;
