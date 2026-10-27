@@ -96,6 +96,13 @@ int main(int argc, char *argv[])
         vector<string> files =
             fileManager.findFiles(selectedFolder.toStdString());
 
+        QMessageBox::information(
+            &window,
+            "Files Found",
+            QString("Found %1 supported files in the selected folder.")
+            .arg(files.size())
+        );
+
         if (files.size() < 2)
         {
             QMessageBox::information(
