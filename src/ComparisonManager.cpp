@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "PlagiarismReport.h"
 
 using namespace std;
+
 vector<Result> ComparisonManager::compareFiles(vector<string> files)
 {
     FileManager manager;
@@ -39,7 +41,12 @@ vector<Result> ComparisonManager::compareFiles(vector<string> files)
             double similarity =
                 calculator.calculateSimilarity(grams1, grams2);
 
-            report.addResult(files[i], files[j], similarity);
+            // Find the matching text fragments
+            vector<string> matches =
+                calculator.findMatchingNGrams(grams1, grams2);
+
+            // Save the similarity and matching fragments
+            report.addResult(files[i], files[j], similarity, matches);
         }
     }
 

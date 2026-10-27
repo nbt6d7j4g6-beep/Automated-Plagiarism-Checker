@@ -1,3 +1,4 @@
+
 #include <QApplication>
 #include <QWidget>
 #include <QLabel>
@@ -10,6 +11,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStringList>
+#include <QAbstractItemView>
 
 #include <string>
 #include <vector>
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
 
     QWidget window;
     window.setWindowTitle("Automated Plagiarism Checker");
-    window.resize(900, 550);
+    window.resize(1100, 600);
 
     QLabel *title = new QLabel("Automated Plagiarism Checker");
     title->setStyleSheet(
@@ -48,9 +50,11 @@ int main(int argc, char *argv[])
 
     QPushButton *checkButton = new QPushButton("Check Similarity");
 
-    QTableWidget *table = new QTableWidget(0, 4);
+    // Create a table with five columns
+    QTableWidget *table = new QTableWidget(0, 5);
     table->setHorizontalHeaderLabels(
-        {"File 1", "File 2", "Similarity", "Category"}
+        {"File 1", "File 2", "Similarity", "Category",
+         "Matching Text Fragments"}
     );
 
     table->horizontalHeader()->setSectionResizeMode(
@@ -58,6 +62,10 @@ int main(int argc, char *argv[])
     );
 
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setWordWrap(true);
+    table->verticalHeader()->setSectionResizeMode(
+        QHeaderView::ResizeToContents
+    );
 
     QString selectedFolder;
 
@@ -116,7 +124,6 @@ int main(int argc, char *argv[])
 
         table->setRowCount(0);
 
-        // Show comparison-in-progress status
         statusLabel->setText("Comparing files...");
         statusLabel->setStyleSheet(
             "color: #d97706; font-size: 14px; font-weight: bold;"
@@ -129,14 +136,6 @@ int main(int argc, char *argv[])
         vector<string> files =
             fileManager.findFiles(selectedFolder.toStdString());
 
-        QMessageBox::information(
-            &window,
-            "Files Found",
-            QString("Found %1 supported files in the selected folder.")
-                .arg(files.size())
-        );
-
-        // Check whether enough files are available
         if (files.size() < 2)
         {
             statusLabel->setText("Not enough files to compare");
@@ -151,19 +150,13 @@ int main(int argc, char *argv[])
             return;
         }
 
-        // Compare the files
         ComparisonManager comparison;
 
         vector<Result> results = comparison.compareFiles(files);
 
-        // Check whether any results were generated
         if (results.empty())
         {
-            table->setRowCount(0);
-
-            statusLabel->setText(
-                "No comparison results available"
-            );
+            statusLabel->setText("No comparison results available");
             statusLabel->setStyleSheet(
                 "color: #dc2626; font-size: 14px; font-weight: bold;"
             );
@@ -171,28 +164,24 @@ int main(int argc, char *argv[])
             QMessageBox::warning(
                 &window, "No Results",
                 "No comparisons could be completed. "
-                "Please check that the selected files contain readable text."
+                "Check that the selected files contain readable text."
             );
             return;
         }
 
-        // Display the results in the table
-        table->setRowCount(0);
-
+        // Display each comparison and its matching fragments
         for (const Result &result : results)
         {
             int row = table->rowCount();
             table->insertRow(row);
 
-            QString file1 =
-                QFileInfo(
-                    QString::fromStdString(result.file1)
-                ).fileName();
+            QString file1 = QFileInfo(
+                QString::fromStdString(result.file1)
+            ).fileName();
 
-            QString file2 =
-                QFileInfo(
-                    QString::fromStdString(result.file2)
-                ).fileName();
+            QString file2 = QFileInfo(
+                QString::fromStdString(result.file2)
+            ).fileName();
 
             table->setItem(
                 row, 0, new QTableWidgetItem(file1)
@@ -215,9 +204,32 @@ int main(int argc, char *argv[])
                     QString::fromStdString(result.category)
                 )
             );
+
+            // Convert matching fragments into readable text
+            QStringList fragments;
+
+            for (const string &gram : result.matchingNGrams)
+            {
+                fragments.append(QString::fromStdString(gram));
+            }
+
+            QString matchingText;
+
+            if (fragments.isEmpty())
+            {
+                matchingText = "No matching fragments";
+            }
+            else
+            {
+                matchingText = fragments.join("\n");
+            }
+
+            table->setItem(
+                row, 4,
+                new QTableWidgetItem(matchingText)
+            );
         }
 
-        // Show successful completion status
         statusLabel->setText(
             "Comparison completed successfully"
         );

@@ -22,7 +22,9 @@ private:
     vector<Result> results;
 
 public:
-    void addResult(string file1, string file2, double similarity);
+    void addResult(
+    string file1, string file2, double similarity,
+    vector<string> matchingNGrams);
     void saveReport(string fileName);
     void saveJsonReport(string fileName);
     vector<Result> getResults();

@@ -1,6 +1,8 @@
 
 #include <fstream>
+#include <iomanip>
 #include "PlagiarismReport.h"
+
 using namespace std;
 
 string escapeJson(string text)
@@ -27,13 +29,15 @@ string escapeJson(string text)
 }
 
 void PlagiarismReport::addResult(
-    string file1, string file2, double similarity)
+    string file1, string file2, double similarity,
+    vector<string> matchingNGrams)
 {
     Result result;
 
     result.file1 = file1;
     result.file2 = file2;
     result.similarity = similarity;
+    result.matchingNGrams = matchingNGrams;
 
     if (similarity < 30)
         result.category = "Low";
@@ -60,8 +64,24 @@ void PlagiarismReport::saveReport(string fileName)
     {
         file << "File 1: " << results[i].file1 << "\n";
         file << "File 2: " << results[i].file2 << "\n";
-        file << "Similarity: " << results[i].similarity << "%\n";   
-        file << "Category: " << results[i].category << "\n\n";
+
+        file << fixed << setprecision(2);
+        file << "Similarity: " << results[i].similarity << "%\n";
+        file << "Category: " << results[i].category << "\n";
+
+        file << "Matching Text Fragments:\n";
+
+        if (results[i].matchingNGrams.empty())
+        {
+            file << "None found\n";
+        }
+        else
+        {
+            for (const string& gram : results[i].matchingNGrams)
+                file << "- " << gram << "\n";
+        }
+
+        file << "\n";
     }
 
     file.close();
@@ -74,6 +94,7 @@ void PlagiarismReport::saveJsonReport(string fileName)
     if (!file.is_open())
         return;
 
+    file << fixed << setprecision(2);
     file << "{\n";
     file << "  \"project\": \"Automated Plagiarism Checker\",\n";
     file << "  \"n_gram_size\": 3,\n";
@@ -89,7 +110,20 @@ void PlagiarismReport::saveJsonReport(string fileName)
         file << "      \"similarity\": "
              << results[i].similarity << ",\n";
         file << "      \"category\": \""
-             << results[i].category << "\"\n";
+             << escapeJson(results[i].category) << "\",\n";
+        file << "      \"matching_fragments\": [";
+
+        for (int j = 0; j < results[i].matchingNGrams.size(); j++)
+        {
+            if (j > 0)
+                file << ", ";
+
+            file << "\"" 
+                 << escapeJson(results[i].matchingNGrams[j])
+                 << "\"";
+        }
+
+        file << "]\n";
         file << "    }";
 
         if (i < results.size() - 1)
@@ -103,6 +137,7 @@ void PlagiarismReport::saveJsonReport(string fileName)
 
     file.close();
 }
+
 vector<Result> PlagiarismReport::getResults()
 {
     return results;
