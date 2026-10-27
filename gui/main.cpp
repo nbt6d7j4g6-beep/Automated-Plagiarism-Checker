@@ -1,4 +1,3 @@
-
 #include <QApplication>
 #include <QWidget>
 #include <QLabel>
@@ -8,10 +7,10 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QDir>
 #include <QFileInfo>
 #include <QStringList>
 #include <QAbstractItemView>
+#include <QComboBox>
 
 #include <string>
 #include <vector>
@@ -43,7 +42,17 @@ int main(int argc, char *argv[])
     QLabel *folderLabel = new QLabel("No folder selected");
     folderLabel->setWordWrap(true);
 
-    QLabel *statusLabel = new QLabel("Ready - select a folder to begin");
+    QLabel *ngramLabel = new QLabel("Select N-gram Size:");
+
+    QComboBox *ngramSelector = new QComboBox();
+    ngramSelector->addItem("2 words", 2);
+    ngramSelector->addItem("3 words", 3);
+    ngramSelector->addItem("5 words", 5);
+    ngramSelector->setCurrentIndex(1);
+
+    QLabel *statusLabel = new QLabel(
+        "Ready - select a folder to begin"
+    );
     statusLabel->setStyleSheet(
         "color: #16a34a; font-size: 14px; font-weight: bold;"
     );
@@ -70,11 +79,14 @@ int main(int argc, char *argv[])
     QString selectedFolder;
 
     QVBoxLayout *layout = new QVBoxLayout(&window);
+
     layout->addWidget(title);
     layout->addWidget(description);
     layout->addSpacing(15);
     layout->addWidget(selectButton);
     layout->addWidget(folderLabel);
+    layout->addWidget(ngramLabel);
+    layout->addWidget(ngramSelector);
     layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
     layout->addWidget(table);
@@ -106,7 +118,7 @@ int main(int argc, char *argv[])
     // Check Similarity button
     QObject::connect(
         checkButton, &QPushButton::clicked,
-        [&window, &selectedFolder, table, statusLabel]()
+        [&window, &selectedFolder, table, statusLabel, ngramSelector]()
     {
         if (selectedFolder.isEmpty())
         {
@@ -152,7 +164,10 @@ int main(int argc, char *argv[])
 
         ComparisonManager comparison;
 
-        vector<Result> results = comparison.compareFiles(files);
+        // Get the selected n-gram size
+        int n = ngramSelector->currentData().toInt();
+
+        vector<Result> results = comparison.compareFiles(files, n);
 
         if (results.empty())
         {
@@ -205,7 +220,6 @@ int main(int argc, char *argv[])
                 )
             );
 
-            // Convert matching fragments into readable text
             QStringList fragments;
 
             for (const string &gram : result.matchingNGrams)
