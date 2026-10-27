@@ -15,12 +15,14 @@
 #include <QFile>
 #include <QTextStream>
 #include <QSaveFile>
+#include <QScrollArea>
 
 #include <string>
 #include <vector>
 
 #include "FileManager.h"
 #include "ComparisonManager.h"
+#include "SimilarityPieChart.h"
 
 using namespace std;
 
@@ -79,6 +81,9 @@ int main(int argc, char *argv[])
     QLabel *moderateLabel = new QLabel("Moderate Similarity: 0");
     QLabel *lowLabel = new QLabel("Low Similarity: 0");
 
+    // Similarity Pie Chart
+    SimilarityPieChart *pieChart = new SimilarityPieChart();    
+
     // Style the dashboard labels
     totalLabel->setStyleSheet("font-size: 14px; font-weight: bold;");
     highLabel->setStyleSheet("font-size: 14px; color: #dc2626;");
@@ -101,8 +106,10 @@ int main(int argc, char *argv[])
     table->setWordWrap(true);
 
     table->verticalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents
+    QHeaderView::Fixed
     );
+
+    table->verticalHeader()->setDefaultSectionSize(100);
 
     QString selectedFolder;
     vector<Result> allResults;
@@ -200,7 +207,26 @@ int main(int argc, char *argv[])
         }
     );
 
-    QVBoxLayout *layout = new QVBoxLayout(&window);
+    // Create a scrollable page
+    QScrollArea *scrollArea = new QScrollArea(&window);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded
+    );
+    scrollArea->setVerticalScrollBarPolicy(
+        Qt::ScrollBarAsNeeded
+    );
+
+    // Create the content inside the scroll area
+    QWidget *contentWidget = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
+
+    // Place the content widget inside the scroll area
+    scrollArea->setWidget(contentWidget);
+
+    // Create the main window layout
+    QVBoxLayout *windowLayout = new QVBoxLayout(&window);
+    windowLayout->addWidget(scrollArea);
 
     layout->addWidget(title);
     layout->addWidget(description);
@@ -218,10 +244,13 @@ int main(int argc, char *argv[])
     layout->addWidget(moderateLabel);
     layout->addWidget(lowLabel);
 
+    layout->addWidget(pieChart);
+
     layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
     layout->addWidget(exportButton);
-    layout->addWidget(table);
+    table->setMinimumHeight(250);
+    layout->addWidget(table, 1);
 
     // Select Folder button
     QObject::connect(
@@ -256,8 +285,8 @@ int main(int argc, char *argv[])
     QObject::connect(
         checkButton, &QPushButton::clicked,
         [&window, &selectedFolder, &allResults, &displayResults,
-        table, statusLabel, ngramSelector,
-        totalLabel, highLabel, moderateLabel, lowLabel]()
+            table, statusLabel, ngramSelector,
+            totalLabel, highLabel, moderateLabel, lowLabel,pieChart]()
         {
             if (selectedFolder.isEmpty())
             {
@@ -349,6 +378,13 @@ int main(int argc, char *argv[])
     lowLabel->setText(
         QString("Low Similarity: %1").arg(lowCount)
     );
+
+        // Update the pie chart
+        pieChart->setCounts(
+            highCount,
+            moderateCount,
+            lowCount
+        );
 
             if (allResults.empty())
             {
