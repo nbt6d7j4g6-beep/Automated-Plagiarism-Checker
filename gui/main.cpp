@@ -38,8 +38,14 @@ int main(int argc, char *argv[])
     );
 
     QPushButton *selectButton = new QPushButton("Select Folder");
+
     QLabel *folderLabel = new QLabel("No folder selected");
     folderLabel->setWordWrap(true);
+
+    QLabel *statusLabel = new QLabel("Ready - select a folder to begin");
+    statusLabel->setStyleSheet(
+    "color: #16a34a; font-size: 14px; font-weight: bold;"
+    );
 
     QPushButton *checkButton = new QPushButton("Check Similarity");
 
@@ -60,6 +66,7 @@ int main(int argc, char *argv[])
     layout->addSpacing(15);
     layout->addWidget(selectButton);
     layout->addWidget(folderLabel);
+    layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
     layout->addWidget(table);
 
