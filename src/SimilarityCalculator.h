@@ -10,6 +10,11 @@ class SimilarityCalculator
 {
 public:
     double calculateSimilarity(vector<string> gramsA, vector<string> gramsB);
+
+    vector<string> findMatchingNGrams(
+        vector<string> gramsA,
+        vector<string> gramsB
+    );
 };
 
 #endif

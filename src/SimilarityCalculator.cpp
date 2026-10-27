@@ -32,3 +32,20 @@ double SimilarityCalculator::calculateSimilarity(
 
     return (static_cast<double>(common) / combined.size()) * 100.0;
 }
+
+vector<string> SimilarityCalculator::findMatchingNGrams(
+    vector<string> gramsA, vector<string> gramsB)
+{
+    set<string> setB(gramsB.begin(), gramsB.end());
+    vector<string> matches;
+
+    for (const string& gram : gramsA)
+    {
+        if (setB.find(gram) != setB.end())
+        {
+            matches.push_back(gram);
+        }
+    }
+
+    return matches;
+}

@@ -1,3 +1,4 @@
+
 #ifndef PLAGIARISMREPORT_H
 #define PLAGIARISMREPORT_H
 
@@ -12,6 +13,7 @@ struct Result
     string file2;
     double similarity;
     string category;
+    vector<string> matchingNGrams;
 };
 
 class PlagiarismReport
