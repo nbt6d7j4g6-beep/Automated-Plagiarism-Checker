@@ -4,6 +4,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QFileDialog>
 #include <QTableWidget>
 #include <QHeaderView>
@@ -16,6 +18,7 @@
 #include <QTextStream>
 #include <QSaveFile>
 #include <QScrollArea>
+#include <QFrame>
 
 #include <string>
 #include <vector>
@@ -26,75 +29,148 @@
 
 using namespace std;
 
+// Creates a dashboard card with a title, large number and description.
+QFrame *createDashboardCard(
+    const QString &heading,
+    const QString &description,
+    const QString &numberColor,
+    QLabel *&numberLabel,
+    QWidget *parent = nullptr)
+{
+    QFrame *card = new QFrame(parent);
+
+    card->setStyleSheet(
+        "QFrame {"
+        "    background-color: #1F2937;"
+        "    border: 1px solid #374151;"
+        "    border-radius: 10px;"
+        "}"
+    );
+
+    QVBoxLayout *cardLayout = new QVBoxLayout(card);
+    cardLayout->setContentsMargins(14, 12, 14, 12);
+    cardLayout->setSpacing(6);
+
+    QLabel *headingLabel = new QLabel(heading);
+    headingLabel->setWordWrap(true);
+    headingLabel->setStyleSheet(
+        "QLabel {"
+        "    background: transparent;"
+        "    border: none;"
+        "    color: #D1D5DB;"
+        "    font-size: 10pt;"
+        "    font-weight: bold;"
+        "}"
+    );
+
+    numberLabel = new QLabel("0");
+    numberLabel->setStyleSheet(
+        QString(
+            "QLabel {"
+            "    background: transparent;"
+            "    border: none;"
+            "    color: %1;"
+            "    font-size: 25pt;"
+            "    font-weight: bold;"
+            "}"
+        ).arg(numberColor)
+    );
+
+    QLabel *descriptionLabel = new QLabel(description);
+    descriptionLabel->setWordWrap(true);
+    descriptionLabel->setStyleSheet(
+        "QLabel {"
+        "    background: transparent;"
+        "    border: none;"
+        "    color: #9CA3AF;"
+        "    font-size: 9pt;"
+        "}"
+    );
+
+    cardLayout->addWidget(headingLabel);
+    cardLayout->addWidget(numberLabel);
+    cardLayout->addWidget(descriptionLabel);
+    cardLayout->addStretch();
+
+    return card;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
     QWidget window;
+    window.setWindowTitle("Automated Plagiarism Checker");
+    window.resize(1100, 700);
 
     window.setStyleSheet(
-    "QWidget {"
-    "    background-color: #111827;"
-    "    color: #F9FAFB;"
-    "    font-family: Segoe UI;"
-    "    font-size: 10pt;"
-    "}"
+        "QWidget {"
+        "    background-color: #111827;"
+        "    color: #F9FAFB;"
+        "    font-family: Segoe UI;"
+        "    font-size: 10pt;"
+        "}"
 
-    "QPushButton {"
-    "    background-color: #2563EB;"
-    "    color: white;"
-    "    border: none;"
-    "    border-radius: 6px;"
-    "    padding: 8px 14px;"
-    "    font-weight: bold;"
-    "}"
+        "QPushButton {"
+        "    background-color: #2563EB;"
+        "    color: white;"
+        "    border: none;"
+        "    border-radius: 6px;"
+        "    padding: 8px 14px;"
+        "    font-weight: bold;"
+        "}"
 
-    "QPushButton:hover {"
-    "    background-color: #1D4ED8;"
-    "}"
+        "QPushButton:hover {"
+        "    background-color: #1D4ED8;"
+        "}"
 
-    "QPushButton:pressed {"
-    "    background-color: #1E40AF;"
-    "}"
+        "QPushButton:pressed {"
+        "    background-color: #1E40AF;"
+        "}"
 
-    "QComboBox {"
-    "    background-color: #1F2937;"
-    "    color: white;"
-    "    border: 1px solid #374151;"
-    "    border-radius: 5px;"
-    "    padding: 6px;"
-    "}"
+        "QComboBox {"
+        "    background-color: #1F2937;"
+        "    color: white;"
+        "    border: 1px solid #374151;"
+        "    border-radius: 5px;"
+        "    padding: 6px;"
+        "}"
 
-    "QLineEdit {"
-    "    background-color: #1F2937;"
-    "    color: white;"
-    "    border: 1px solid #374151;"
-    "    border-radius: 5px;"
-    "    padding: 6px;"
-    "}"
+        "QComboBox QAbstractItemView {"
+        "    background-color: #1F2937;"
+        "    color: white;"
+        "    selection-background-color: #2563EB;"
+        "}"
 
-    "QLabel {"
-    "    color: #E5E7EB;"
-    "}"
-);
+        "QLabel {"
+        "    color: #E5E7EB;"
+        "}"
+    );
 
-    window.setWindowTitle("Automated Plagiarism Checker");
-    window.resize(1100, 600);
-
+    // Application heading
     QLabel *title = new QLabel("Automated Plagiarism Checker");
     title->setStyleSheet(
-        "font-size: 24px; font-weight: bold; color: #2563eb;"
+        "font-size: 24px;"
+        "font-weight: bold;"
+        "color: #60A5FA;"
+        "background: transparent;"
     );
 
     QLabel *description = new QLabel(
         "Compare student files and identify textual similarity."
     );
 
+    description->setStyleSheet(
+        "color: #9CA3AF; background: transparent;"
+    );
+
+    // Folder selection
     QPushButton *selectButton = new QPushButton("Select Folder");
 
     QLabel *folderLabel = new QLabel("No folder selected");
     folderLabel->setWordWrap(true);
 
+    // N-gram selection
     QLabel *ngramLabel = new QLabel("Select N-gram Size:");
 
     QComboBox *ngramSelector = new QComboBox();
@@ -103,6 +179,7 @@ int main(int argc, char *argv[])
     ngramSelector->addItem("5 words", 5);
     ngramSelector->setCurrentIndex(1);
 
+    // Result filtering
     QLabel *filterLabel = new QLabel("Filter Results:");
 
     QComboBox *filterSelector = new QComboBox();
@@ -111,108 +188,152 @@ int main(int argc, char *argv[])
     filterSelector->addItem("Medium Similarity");
     filterSelector->addItem("Low Similarity");
 
-    QPushButton *checkButton = new QPushButton("Check Similarity");
-    QPushButton *exportButton = new QPushButton("Export Results to CSV");
+    QPushButton *checkButton =
+        new QPushButton("Check Similarity");
+
+    QPushButton *exportButton =
+        new QPushButton("Export Results to CSV");
 
     QLabel *statusLabel = new QLabel(
         "Ready - select a folder to begin"
     );
 
     statusLabel->setStyleSheet(
-        "color: #16a34a; font-size: 14px; font-weight: bold;"
+        "color: #4ADE80;"
+        "font-size: 14px;"
+        "font-weight: bold;"
+        "background: transparent;"
     );
 
-    // Similarity Summary Dashboard
-    QLabel *totalLabel = new QLabel("Total Comparisons: 0");
-    QLabel *highLabel = new QLabel("High Similarity: 0");
-    QLabel *moderateLabel = new QLabel("Moderate Similarity: 0");
-    QLabel *lowLabel = new QLabel("Low Similarity: 0");
+    // Dashboard number labels
+    QLabel *totalNumber = nullptr;
+    QLabel *highNumber = nullptr;
+    QLabel *moderateNumber = nullptr;
+    QLabel *lowNumber = nullptr;
 
-    // Similarity Pie Chart
-    SimilarityPieChart *pieChart = new SimilarityPieChart();    
+    // Create the four dashboard cards
+    QFrame *totalCard = createDashboardCard(
+        "Total Comparisons",
+        "All file pairs",
+        "#60A5FA",
+        totalNumber
+    );
 
-    // Style the dashboard labels
-    totalLabel->setStyleSheet("font-size: 14px; font-weight: bold;");
-    highLabel->setStyleSheet("font-size: 14px; color: #dc2626;");
-    moderateLabel->setStyleSheet("font-size: 14px; color: #d97706;");
-    lowLabel->setStyleSheet("font-size: 14px; color: #16a34a;");
+    QFrame *highCard = createDashboardCard(
+        "High Similarity",
+        "Needs attention",
+        "#F87171",
+        highNumber
+    );
 
-    // Create a table with five columns
+    QFrame *moderateCard = createDashboardCard(
+        "Moderate Similarity",
+        "Review recommended",
+        "#FBBF24",
+        moderateNumber
+    );
+
+    QFrame *lowCard = createDashboardCard(
+        "Low Similarity",
+        "Lower similarity",
+        "#4ADE80",
+        lowNumber
+    );
+
+    // Similarity pie chart
+    SimilarityPieChart *pieChart =
+        new SimilarityPieChart();
+
+    // Results table
     QTableWidget *table = new QTableWidget(0, 5);
 
-    
-table->setStyleSheet(
-    "QTableWidget {"
-    "    background-color: #1F2937;"
-    "    alternate-background-color: #273449;"
-    "    color: #F9FAFB;"
-    "    gridline-color: #374151;"
-    "    border: 1px solid #374151;"
-    "    border-radius: 6px;"
-    "    selection-background-color: #2563EB;"
-    "    selection-color: white;"
-    "}"
+    table->setStyleSheet(
+        "QTableWidget {"
+        "    background-color: #1F2937;"
+        "    alternate-background-color: #273449;"
+        "    color: #F9FAFB;"
+        "    gridline-color: #374151;"
+        "    border: 1px solid #374151;"
+        "    border-radius: 6px;"
+        "    selection-background-color: #2563EB;"
+        "    selection-color: white;"
+        "}"
 
-    "QHeaderView::section {"
-    "    background-color: #1E3A5F;"
-    "    color: white;"
-    "    padding: 8px;"
-    "    border: 1px solid #374151;"
-    "    font-weight: bold;"
-    "}"
+        "QHeaderView::section {"
+        "    background-color: #1E3A5F;"
+        "    color: white;"
+        "    padding: 8px;"
+        "    border: 1px solid #374151;"
+        "    font-weight: bold;"
+        "}"
 
-    "QTableWidget::item {"
-    "    padding: 6px;"
-    "    border-bottom: 1px solid #374151;"
-    "}"
-);
-
-table->setAlternatingRowColors(true);
-
-
-    table->setHorizontalHeaderLabels(
-        {"File 1", "File 2", "Similarity", "Category",
-         "Matching Text Fragments"}
+        "QTableWidget::item {"
+        "    padding: 6px;"
+        "    border-bottom: 1px solid #374151;"
+        "}"
     );
+
+    table->setAlternatingRowColors(true);
+
+    table->setHorizontalHeaderLabels({
+        "File 1",
+        "File 2",
+        "Similarity",
+        "Category",
+        "Matching Text Fragments"
+    });
 
     table->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch
     );
 
-    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setEditTriggers(
+        QAbstractItemView::NoEditTriggers
+    );
+
     table->setWordWrap(true);
 
     table->verticalHeader()->setSectionResizeMode(
-    QHeaderView::Fixed
+        QHeaderView::Fixed
     );
 
     table->verticalHeader()->setDefaultSectionSize(100);
+    table->setMinimumHeight(250);
 
+    // Data used by the comparison features
     QString selectedFolder;
     vector<Result> allResults;
 
-    // Display results according to the selected category
+    // Display results based on the selected category
     auto displayResults = [&]()
     {
         table->setRowCount(0);
 
-        QString selectedFilter = filterSelector->currentText();
+        QString selectedFilter =
+            filterSelector->currentText();
+
         int displayedCount = 0;
 
         for (const Result &result : allResults)
         {
             if (selectedFilter == "High Similarity" &&
                 result.category != "High")
+            {
                 continue;
+            }
 
             if (selectedFilter == "Medium Similarity" &&
                 result.category != "Moderate" &&
                 result.category != "Medium")
+            {
                 continue;
+            }
 
             if (selectedFilter == "Low Similarity" &&
                 result.category != "Low")
+            {
                 continue;
+            }
 
             int row = table->rowCount();
             table->insertRow(row);
@@ -227,17 +348,21 @@ table->setAlternatingRowColors(true);
             ).fileName();
 
             table->setItem(
-                row, 0, new QTableWidgetItem(file1)
+                row, 0,
+                new QTableWidgetItem(file1)
             );
 
             table->setItem(
-                row, 1, new QTableWidgetItem(file2)
+                row, 1,
+                new QTableWidgetItem(file2)
             );
 
             table->setItem(
                 row, 2,
                 new QTableWidgetItem(
-                    QString::number(result.similarity, 'f', 2) + "%"
+                    QString::number(
+                        result.similarity, 'f', 2
+                    ) + "%"
                 )
             );
 
@@ -252,7 +377,9 @@ table->setAlternatingRowColors(true);
 
             for (const string &gram : result.matchingNGrams)
             {
-                fragments.append(QString::fromStdString(gram));
+                fragments.append(
+                    QString::fromStdString(gram)
+                );
             }
 
             QString matchingText = fragments.isEmpty()
@@ -260,7 +387,8 @@ table->setAlternatingRowColors(true);
                 : fragments.join("\n");
 
             table->setItem(
-                row, 4, new QTableWidgetItem(matchingText)
+                row, 4,
+                new QTableWidgetItem(matchingText)
             );
         }
 
@@ -270,11 +398,14 @@ table->setAlternatingRowColors(true);
         );
 
         statusLabel->setStyleSheet(
-            "color: #16a34a; font-size: 14px; font-weight: bold;"
+            "color: #4ADE80;"
+            "font-size: 14px;"
+            "font-weight: bold;"
+            "background: transparent;"
         );
     };
 
-    // Update the table immediately when the filter changes
+    // Refresh the table when the filter changes
     QObject::connect(
         filterSelector,
         &QComboBox::currentTextChanged,
@@ -284,7 +415,7 @@ table->setAlternatingRowColors(true);
         }
     );
 
-    // Create a scrollable page
+    // Scrollable application page
     QScrollArea *scrollArea = new QScrollArea(&window);
     scrollArea->setWidgetResizable(true);
     scrollArea->setHorizontalScrollBarPolicy(
@@ -293,21 +424,26 @@ table->setAlternatingRowColors(true);
     scrollArea->setVerticalScrollBarPolicy(
         Qt::ScrollBarAsNeeded
     );
+    scrollArea->setFrameShape(QFrame::NoFrame);
 
-    // Create the content inside the scroll area
     QWidget *contentWidget = new QWidget();
-    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
+    contentWidget->setStyleSheet(
+        "background-color: #111827;"
+    );
 
-    // Place the content widget inside the scroll area
+    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
+    layout->setContentsMargins(20, 20, 20, 20);
+    layout->setSpacing(12);
+
     scrollArea->setWidget(contentWidget);
 
-    // Create the main window layout
     QVBoxLayout *windowLayout = new QVBoxLayout(&window);
     windowLayout->addWidget(scrollArea);
 
+    // Main page layout
     layout->addWidget(title);
     layout->addWidget(description);
-    layout->addSpacing(15);
+    layout->addSpacing(8);
     layout->addWidget(selectButton);
     layout->addWidget(folderLabel);
     layout->addWidget(ngramLabel);
@@ -315,29 +451,36 @@ table->setAlternatingRowColors(true);
     layout->addWidget(filterLabel);
     layout->addWidget(filterSelector);
 
-    // Similarity Summary Dashboard
-    layout->addWidget(totalLabel);
-    layout->addWidget(highLabel);
-    layout->addWidget(moderateLabel);
-    layout->addWidget(lowLabel);
+    // Four summary cards in one row
+    QHBoxLayout *dashboardLayout = new QHBoxLayout();
+    dashboardLayout->setSpacing(12);
+
+    dashboardLayout->addWidget(totalCard);
+    dashboardLayout->addWidget(highCard);
+    dashboardLayout->addWidget(moderateCard);
+    dashboardLayout->addWidget(lowCard);
+
+    layout->addLayout(dashboardLayout);
 
     layout->addWidget(pieChart);
-
     layout->addWidget(statusLabel);
     layout->addWidget(checkButton);
     layout->addWidget(exportButton);
-    table->setMinimumHeight(250);
     layout->addWidget(table, 1);
 
     // Select Folder button
     QObject::connect(
-        selectButton, &QPushButton::clicked,
+        selectButton,
+        &QPushButton::clicked,
         [&window, &selectedFolder, &allResults,
-         folderLabel, table, statusLabel]()
+         folderLabel, table, statusLabel,
+         totalNumber, highNumber, moderateNumber,
+         lowNumber, pieChart]()
         {
-            QString folder = QFileDialog::getExistingDirectory(
-                &window, "Select Folder"
-            );
+            QString folder =
+                QFileDialog::getExistingDirectory(
+                    &window, "Select Folder"
+                );
 
             if (!folder.isEmpty())
             {
@@ -347,12 +490,23 @@ table->setAlternatingRowColors(true);
                 folderLabel->setText(folder);
                 table->setRowCount(0);
 
+                // Reset the dashboard
+                totalNumber->setText("0");
+                highNumber->setText("0");
+                moderateNumber->setText("0");
+                lowNumber->setText("0");
+
+                pieChart->setCounts(0, 0, 0);
+
                 statusLabel->setText(
                     "Folder selected - ready to compare"
                 );
 
                 statusLabel->setStyleSheet(
-                    "color: #2563eb; font-size: 14px; font-weight: bold;"
+                    "color: #60A5FA;"
+                    "font-size: 14px;"
+                    "font-weight: bold;"
+                    "background: transparent;"
                 );
             }
         }
@@ -360,10 +514,12 @@ table->setAlternatingRowColors(true);
 
     // Check Similarity button
     QObject::connect(
-        checkButton, &QPushButton::clicked,
-        [&window, &selectedFolder, &allResults, &displayResults,
-            table, statusLabel, ngramSelector,
-            totalLabel, highLabel, moderateLabel, lowLabel,pieChart]()
+        checkButton,
+        &QPushButton::clicked,
+        [&window, &selectedFolder, &allResults,
+         &displayResults, table, statusLabel,
+         ngramSelector, totalNumber, highNumber,
+         moderateNumber, lowNumber, pieChart]()
         {
             if (selectedFolder.isEmpty())
             {
@@ -371,12 +527,9 @@ table->setAlternatingRowColors(true);
                     "Please select a folder first"
                 );
 
-                statusLabel->setStyleSheet(
-                    "color: #dc2626; font-size: 14px; font-weight: bold;"
-                );
-
                 QMessageBox::warning(
-                    &window, "Select Folder",
+                    &window,
+                    "Select Folder",
                     "Please select a folder first."
                 );
 
@@ -387,7 +540,10 @@ table->setAlternatingRowColors(true);
 
             statusLabel->setText("Comparing files...");
             statusLabel->setStyleSheet(
-                "color: #d97706; font-size: 14px; font-weight: bold;"
+                "color: #FBBF24;"
+                "font-size: 14px;"
+                "font-weight: bold;"
+                "background: transparent;"
             );
 
             QApplication::processEvents();
@@ -395,23 +551,30 @@ table->setAlternatingRowColors(true);
             FileManager fileManager;
 
             vector<string> files =
-                fileManager.findFiles(selectedFolder.toStdString());
+                fileManager.findFiles(
+                    selectedFolder.toStdString()
+                );
 
             if (files.size() < 2)
             {
                 allResults.clear();
 
+                totalNumber->setText("0");
+                highNumber->setText("0");
+                moderateNumber->setText("0");
+                lowNumber->setText("0");
+
+                pieChart->setCounts(0, 0, 0);
+
                 statusLabel->setText(
                     "Not enough files to compare"
                 );
 
-                statusLabel->setStyleSheet(
-                    "color: #dc2626; font-size: 14px; font-weight: bold;"
-                );
-
                 QMessageBox::information(
-                    &window, "Not Enough Files",
-                    "Select a folder containing at least two readable files."
+                    &window,
+                    "Not Enough Files",
+                    "Select a folder containing at least "
+                    "two readable files."
                 );
 
                 return;
@@ -419,49 +582,55 @@ table->setAlternatingRowColors(true);
 
             ComparisonManager comparison;
 
-            // Get the selected n-gram size
             int n = ngramSelector->currentData().toInt();
 
             allResults = comparison.compareFiles(files, n);
 
-            // Update Similarity Summary Dashboard
-    int highCount = 0;
-    int moderateCount = 0;
-    int lowCount = 0;
+            // Count results by category
+            int highCount = 0;
+            int moderateCount = 0;
+            int lowCount = 0;
 
-    for (const Result &result : allResults)
-    {
-        if (result.category == "High")
-            highCount++;
-        else if (result.category == "Moderate" ||
-                result.category == "Medium")
-            moderateCount++;
-        else if (result.category == "Low")
-            lowCount++;
-    }
+            for (const Result &result : allResults)
+            {
+                if (result.category == "High")
+                {
+                    highCount++;
+                }
+                else if (result.category == "Moderate" ||
+                         result.category == "Medium")
+                {
+                    moderateCount++;
+                }
+                else if (result.category == "Low")
+                {
+                    lowCount++;
+                }
+            }
 
-    totalLabel->setText(
-       QString("Total Comparisons: %1").arg(allResults.size())
-    );
+            // Update the large numbers inside the cards
+            totalNumber->setText(
+                QString::number(allResults.size())
+            );
 
-    highLabel->setText(
-        QString("High Similarity: %1").arg(highCount)
-    );
+            highNumber->setText(
+                QString::number(highCount)
+            );
 
-    moderateLabel->setText(
-        QString("Moderate Similarity: %1").arg(moderateCount)
-    );
+            moderateNumber->setText(
+                QString::number(moderateCount)
+            );
 
-    lowLabel->setText(
-        QString("Low Similarity: %1").arg(lowCount)
-    );
+            lowNumber->setText(
+                QString::number(lowCount)
+            );
 
-        // Update the pie chart
-        pieChart->setCounts(
-            highCount,
-            moderateCount,
-            lowCount
-        );
+            // Update the pie chart
+            pieChart->setCounts(
+                highCount,
+                moderateCount,
+                lowCount
+            );
 
             if (allResults.empty())
             {
@@ -469,24 +638,22 @@ table->setAlternatingRowColors(true);
                     "No comparison results available"
                 );
 
-                statusLabel->setStyleSheet(
-                    "color: #dc2626; font-size: 14px; font-weight: bold;"
-                );
-
                 QMessageBox::warning(
-                    &window, "No Results",
+                    &window,
+                    "No Results",
                     "No comparisons could be completed. "
-                    "Check that the selected files contain readable text."
+                    "Check that the selected files contain "
+                    "readable text."
                 );
 
                 return;
             }
 
-            // Display results using the currently selected filter
             displayResults();
 
             QMessageBox::information(
-                &window, "Comparison Complete",
+                &window,
+                "Comparison Complete",
                 QString(
                     "Compared %1 file pairs.\n"
                     "Text and JSON reports have been saved."
@@ -496,19 +663,20 @@ table->setAlternatingRowColors(true);
     );
 
     // Export Results to CSV
-QObject::connect(
-    exportButton, &QPushButton::clicked,
-    [&window, &allResults]()
-    {
-        if (allResults.empty())
+    QObject::connect(
+        exportButton,
+        &QPushButton::clicked,
+        [&window, &allResults]()
         {
-            QMessageBox::warning(
-                &window,
-                "No Results",
-                "Please check similarity before exporting results."
-            );
-            return;
-        }
+            if (allResults.empty())
+            {
+                QMessageBox::warning(
+                    &window,
+                    "No Results",
+                    "Please check similarity before exporting results."
+                );
+                return;
+            }
 
             QString fileName = QFileDialog::getSaveFileName(
                 &window,
@@ -518,14 +686,19 @@ QObject::connect(
             );
 
             if (fileName.isEmpty())
+            {
                 return;
+            }
 
             if (!fileName.endsWith(".csv", Qt::CaseInsensitive))
+            {
                 fileName += ".csv";
+            }
 
             QSaveFile file(fileName);
 
-            if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            if (!file.open(
+                    QIODevice::WriteOnly | QIODevice::Text))
             {
                 QMessageBox::critical(
                     &window,
@@ -537,11 +710,11 @@ QObject::connect(
 
             QTextStream out(&file);
 
-            // Write the CSV header
+            // CSV header
             out << "\"File 1\",\"File 2\",\"Similarity (%)\","
-                "\"Category\",\"Matching Text Fragments\"\n";
+                << "\"Category\",\"Matching Text Fragments\"\n";
 
-            // Export every comparison result
+            // Export all comparison results
             for (const Result &result : allResults)
             {
                 QString file1 = QFileInfo(
@@ -556,7 +729,9 @@ QObject::connect(
 
                 for (const string &gram : result.matchingNGrams)
                 {
-                    fragments.append(QString::fromStdString(gram));
+                    fragments.append(
+                        QString::fromStdString(gram)
+                    );
                 }
 
                 QString matchingText = fragments.isEmpty()
@@ -568,12 +743,15 @@ QObject::connect(
                 file2.replace("\"", "\"\"");
                 matchingText.replace("\"", "\"\"");
 
-                QString category = QString::fromStdString(result.category);
+                QString category =
+                    QString::fromStdString(result.category);
                 category.replace("\"", "\"\"");
 
                 out << "\"" << file1 << "\","
                     << "\"" << file2 << "\","
-                    << QString::number(result.similarity, 'f', 2) << ","
+                    << QString::number(
+                        result.similarity, 'f', 2
+                    ) << ","
                     << "\"" << category << "\","
                     << "\"" << matchingText << "\"\n";
             }
@@ -588,7 +766,7 @@ QObject::connect(
                 return;
             }
 
-                QMessageBox::information(
+            QMessageBox::information(
                 &window,
                 "Export Successful",
                 "Comparison results exported successfully."
