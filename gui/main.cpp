@@ -1,4 +1,3 @@
-
 #include <QApplication>
 #include <QWidget>
 #include <QLabel>
@@ -290,6 +289,206 @@ void showComparisonWindow(const Result &result)
     dialog.exec();
 }
 
+        // Opens a window showing only the common text fragments.
+
+        void showMatchingFragments(const Result &result)
+        {
+            QFile file1(QString::fromStdString(result.file1));
+            QFile file2(QString::fromStdString(result.file2));
+
+            if (!file1.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                QMessageBox::warning(
+                    nullptr, "File Error",
+                    "Could not open the first file:\n" + file1.fileName()
+                );
+                return;
+            }
+
+            if (!file2.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                QMessageBox::warning(
+                    nullptr, "File Error",
+                    "Could not open the second file:\n" + file2.fileName()
+                );
+                return;
+            }
+
+            QString text1 = QString::fromUtf8(file1.readAll());
+            QString text2 = QString::fromUtf8(file2.readAll());
+
+            file1.close();
+            file2.close();
+
+            QDialog dialog;
+            dialog.setWindowTitle("Common Text Fragments - Side by Side");
+            dialog.resize(1100, 650);
+
+            QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+            QLabel *heading = new QLabel(
+                QString("Similarity: %1%    |    Category: %2")
+                    .arg(result.similarity, 0, 'f', 2)
+                    .arg(QString::fromStdString(result.category))
+            );
+
+            heading->setStyleSheet(
+                "font-size: 15px;"
+                "font-weight: bold;"
+                "color: #60A5FA;"
+                "padding: 8px;"
+                "background: transparent;"
+            );
+
+            layout->addWidget(heading);
+
+            QSplitter *splitter = new QSplitter(Qt::Horizontal);
+
+            QPlainTextEdit *leftEditor = new QPlainTextEdit();
+            QPlainTextEdit *rightEditor = new QPlainTextEdit();
+
+            leftEditor->setReadOnly(true);
+            rightEditor->setReadOnly(true);
+
+            leftEditor->setLineWrapMode(QPlainTextEdit::NoWrap);
+            rightEditor->setLineWrapMode(QPlainTextEdit::NoWrap);
+
+            leftEditor->setPlainText(text1);
+            rightEditor->setPlainText(text2);
+
+            QLabel *leftFilename = new QLabel(
+                QFileInfo(QString::fromStdString(result.file1)).fileName()
+            );
+
+            QLabel *rightFilename = new QLabel(
+                QFileInfo(QString::fromStdString(result.file2)).fileName()
+            );
+
+            leftFilename->setStyleSheet(
+                "font-weight: bold; color: #60A5FA; background: transparent;"
+                "padding: 5px;"
+            );
+
+            rightFilename->setStyleSheet(
+                "font-weight: bold; color: #60A5FA; background: transparent;"
+                "padding: 5px;"
+            );
+
+            QWidget *leftPanel = new QWidget();
+            QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
+            leftLayout->addWidget(leftFilename);
+            leftLayout->addWidget(leftEditor);
+
+            QWidget *rightPanel = new QWidget();
+            QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
+            rightLayout->addWidget(rightFilename);
+            rightLayout->addWidget(rightEditor);
+
+            splitter->addWidget(leftPanel);
+            splitter->addWidget(rightPanel);
+            splitter->setStretchFactor(0, 1);
+            splitter->setStretchFactor(1, 1);
+
+            QString editorStyle =
+                "QPlainTextEdit {"
+                " background-color: #111827;"
+                " color: #F9FAFB;"
+                " border: 1px solid #374151;"
+                " font-family: Consolas;"
+                " font-size: 10pt;"
+                " selection-background-color: #2563EB;"
+                "}";
+
+            leftEditor->setStyleSheet(editorStyle);
+            rightEditor->setStyleSheet(editorStyle);
+
+            layout->addWidget(splitter);
+
+            // Highlight matching text in both files.
+            QTextCharFormat highlightFormat;
+            highlightFormat.setBackground(QColor("#FDE047"));
+            highlightFormat.setForeground(QColor("#111827"));
+
+            auto highlightMatches = [&](QPlainTextEdit *editor)
+            {
+                QTextDocument *document = editor->document();
+                QString fullText = document->toPlainText();
+
+                vector<QString> processedFragments;
+
+                for (const string &gram : result.matchingNGrams)
+                {
+                    QString fragment = QString::fromStdString(gram).trimmed();
+
+                    if (fragment.isEmpty() ||
+                        find(processedFragments.begin(),
+                            processedFragments.end(),
+                            fragment) != processedFragments.end())
+                    {
+                        continue;
+                    }
+
+                    processedFragments.push_back(fragment);
+
+                    QStringList words = fragment.split(
+                        QRegularExpression("\\s+"),
+                        Qt::SkipEmptyParts
+                    );
+
+                    if (words.isEmpty())
+                        continue;
+
+                    QStringList escapedWords;
+
+                    for (const QString &word : words)
+                        escapedWords.append(QRegularExpression::escape(word));
+
+                    QString pattern = escapedWords.join("\\s+");
+
+                    QRegularExpression expression(
+                        pattern,
+                        QRegularExpression::CaseInsensitiveOption
+                    );
+
+                    if (!expression.isValid())
+                        continue;
+
+                    QRegularExpressionMatchIterator matches =
+                        expression.globalMatch(fullText);
+
+                    while (matches.hasNext())
+                    {
+                        QRegularExpressionMatch match = matches.next();
+
+                        QTextCursor cursor(document);
+                        cursor.setPosition(match.capturedStart());
+                        cursor.setPosition(
+                            match.capturedEnd(),
+                            QTextCursor::KeepAnchor
+                        );
+
+                        cursor.mergeCharFormat(highlightFormat);
+                    }
+                }
+            };
+
+            highlightMatches(leftEditor);
+            highlightMatches(rightEditor);
+
+            QPushButton *closeButton = new QPushButton("Close");
+            layout->addWidget(closeButton);
+
+            QObject::connect(
+                closeButton,
+                &QPushButton::clicked,
+                &dialog,
+                &QDialog::accept
+            );
+
+            dialog.exec();
+        }
+
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -494,7 +693,7 @@ int main(int argc, char *argv[])
 
     // Instruction to help users discover the comparison feature
 QLabel *comparisonTip = new QLabel(
-    "Tip: Double-click any result row to open the side-by-side "
+    "Tip: Click on View Fragments to open the side-by-side "
     "comparison window and view highlighted matching text."
 );
 
@@ -662,18 +861,24 @@ comparisonTip->setStyleSheet(
                 )
             );
 
-            QStringList fragments;
+            // Add a button instead of displaying all fragments in the table.
+            QPushButton *viewFragmentsButton =
+                new QPushButton("View Fragments");
 
-            for (const string &gram : result.matchingNGrams)
-                fragments.append(QString::fromStdString(gram));
+            viewFragmentsButton->setToolTip(
+                "Click to view the common text fragments for this file pair."
+            );
 
-            QString matchingText = fragments.isEmpty()
-                ? "No matching fragments"
-                : fragments.join("\n");
+            table->setCellWidget(row, 4, viewFragmentsButton);
 
-            table->setItem(
-                row, 4,
-                new QTableWidgetItem(matchingText)
+            // Capture this specific comparison result for the button.
+            QObject::connect(
+                viewFragmentsButton,
+                &QPushButton::clicked,
+                [result]()
+                {
+                    showMatchingFragments(result);
+                }
             );
         }
 
