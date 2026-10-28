@@ -1,4 +1,4 @@
 "File 1","File 2","Similarity (%)","Category","Matching Text Fragments"
-"student1.cpp","student2.cpp",75.00,"High","#include <iostream>; <iostream> using; using namespace; namespace std;; std; int; int main(); main() {; { cout; cout <<; << ""hello; return 0;; 0; }"
-"student1.cpp","student3.cpp",37.50,"Moderate","#include <iostream>; <iostream> using; using namespace; namespace std;; std; int; int main(); main() {; return 0;; 0; }"
-"student2.cpp","student3.cpp",37.50,"Moderate","#include <iostream>; <iostream> using; using namespace; namespace std;; std; int; int main(); main() {; return 0;; 0; }"
+"student1.cpp","student2.cpp",62.50,"High","#include <iostream> using; <iostream> using namespace; using namespace std;; namespace std; int; std; int main(); int main() {; main() { cout; { cout <<; cout << ""hello; return 0; }"
+"student1.cpp","student3.cpp",29.17,"Low","#include <iostream> using; <iostream> using namespace; using namespace std;; namespace std; int; std; int main(); int main() {; return 0; }"
+"student2.cpp","student3.cpp",29.17,"Low","#include <iostream> using; <iostream> using namespace; using namespace std;; namespace std; int; std; int main(); int main() {; return 0; }"
