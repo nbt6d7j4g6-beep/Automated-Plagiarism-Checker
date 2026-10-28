@@ -610,7 +610,7 @@ sort(sortedResults.begin(), sortedResults.end(),
                 QFileDialog::getExistingDirectory(
                     &window, "Select Folder"
                 );
-
+            
             if (!folder.isEmpty())
             {
                 selectedFolder = folder;
@@ -907,6 +907,18 @@ allResults = comparison.compareFiles(
                     << "\"" << category << "\","
                     << "\"" << matchingText << "\"\n";
             }
+            if (out.status() != QTextStream::Ok)
+            {
+                QMessageBox::critical(
+                    &window,
+                    "Export Failed",
+                    "An error occurred while writing "
+                    "the CSV file. The file was not saved."
+                );
+
+                file.cancelWriting();
+                return;
+            }
 
             if (!file.commit())
             {
@@ -917,6 +929,7 @@ allResults = comparison.compareFiles(
                 );
                 return;
             }
+            
 
             QMessageBox::information(
                 &window,

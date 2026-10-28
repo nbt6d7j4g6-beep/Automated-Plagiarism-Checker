@@ -1,0 +1,40 @@
+[1mdiff --git a/gui/main.cpp b/gui/main.cpp[m
+[1mindex 15592c7..f64e324 100644[m
+[1m--- a/gui/main.cpp[m
+[1m+++ b/gui/main.cpp[m
+[36m@@ -610,7 +610,7 @@[m [msort(sortedResults.begin(), sortedResults.end(),[m
+                 QFileDialog::getExistingDirectory([m
+                     &window, "Select Folder"[m
+                 );[m
+[31m-[m
+[32m+[m[41m            [m
+             if (!folder.isEmpty())[m
+             {[m
+                 selectedFolder = folder;[m
+[36m@@ -907,6 +907,18 @@[m [mallResults = comparison.compareFiles([m
+                     << "\"" << category << "\","[m
+                     << "\"" << matchingText << "\"\n";[m
+             }[m
+[32m+[m[32m            if (out.status() != QTextStream::Ok)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                QMessageBox::critical([m
+[32m+[m[32m                    &window,[m
+[32m+[m[32m                    "Export Failed",[m
+[32m+[m[32m                    "An error occurred while writing "[m
+[32m+[m[32m                    "the CSV file. The file was not saved."[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m                file.cancelWriting();[m
+[32m+[m[32m                return;[m
+[32m+[m[32m            }[m
+ [m
+             if (!file.commit())[m
+             {[m
+[36m@@ -917,6 +929,7 @@[m [mallResults = comparison.compareFiles([m
+                 );[m
+                 return;[m
+             }[m
+[32m+[m[41m            [m
+ [m
+             QMessageBox::information([m
+                 &window,[m
