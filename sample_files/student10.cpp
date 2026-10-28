@@ -1,53 +1,141 @@
+
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <set>
-#include <cctype>
 using namespace std;
 
-set<string> getWords(const string& text) {
-    set<string> words;
-    stringstream stream(text);
-    string word;
+class Stack {
+    int arr[5], top;
 
-    while (stream >> word) {
-        string cleaned;
-        for (unsigned char ch : word) {
-            if (isalnum(ch))
-                cleaned += static_cast<char>(tolower(ch));
-        }
-        if (!cleaned.empty())
-            words.insert(cleaned);
+public:
+    Stack() {
+        top = -1;
     }
-    return words;
-}
+
+    bool empty() {
+        return top == -1;
+    }
+
+    bool full() {
+        return top == 4;
+    }
+
+    void push(int x) {
+        if (full())
+            cout << "Stack is full!\n";
+        else {
+            arr[++top] = x;
+            cout << "Element pushed successfully.\n";
+        }
+    }
+
+    void pop() {
+        if (empty())
+            cout << "Stack is empty!\n";
+        else
+            cout << "Popped element: " << arr[top--] << endl;
+    }
+};
+
+class Queue {
+    int arr[5], front, rear;
+
+public:
+    Queue() {
+        front = 0;
+        rear = -1;
+    }
+
+    bool empty() {
+        return rear < front;
+    }
+
+    bool full() {
+        return rear == 4;
+    }
+
+    void push(int x) {
+        if (full())
+            cout << "Queue is full!\n";
+        else {
+            arr[++rear] = x;
+            cout << "Element inserted successfully.\n";
+        }
+    }
+
+    void pop() {
+        if (empty())
+            cout << "Queue is empty!\n";
+        else
+            cout << "Removed element: " << arr[front++] << endl;
+    }
+};
 
 int main() {
-    string first, second;
+    Stack s;
+    Queue q;
+    int choice, value;
 
-    cout << "Enter first document in one line:\n";
-    getline(cin, first);
-    cout << "Enter second document in one line:\n";
-    getline(cin, second);
+    do {
+        cout << "\n1. Stack Push";
+        cout << "\n2. Stack Pop";
+        cout << "\n3. Check Stack Empty";
+        cout << "\n4. Check Stack Full";
+        cout << "\n5. Queue Push";
+        cout << "\n6. Queue Pop";
+        cout << "\n7. Check Queue Empty";
+        cout << "\n8. Check Queue Full";
+        cout << "\n9. Exit";
+        cout << "\nEnter your choice: ";
+        cin >> choice;
 
-    set<string> a = getWords(first);
-    set<string> b = getWords(second);
-    int intersection = 0;
+        switch (choice) {
+            case 1:
+                cout << "Enter value: ";
+                cin >> value;
+                s.push(value);
+                break;
 
-    for (const string& word : a) {
-        if (b.count(word))
-            ++intersection;
-    }
+            case 2:
+                s.pop();
+                break;
 
-    int unionSize = static_cast<int>(a.size() + b.size()) - intersection;
-    double score = unionSize == 0 ? 0.0 :
-        100.0 * intersection / unionSize;
+            case 3:
+                cout << (s.empty() ? "Stack is empty\n" :
+                                     "Stack is not empty\n");
+                break;
 
-    cout << "Unique words in first: " << a.size() << '\n';
-    cout << "Unique words in second: " << b.size() << '\n';
-    cout << "Shared unique words: " << intersection << '\n';
-    cout << "Jaccard similarity: " << score << "%\n";
-    cout << "Note: similarity alone does not prove plagiarism.\n";
+            case 4:
+                cout << (s.full() ? "Stack is full\n" :
+                                    "Stack is not full\n");
+                break;
+
+            case 5:
+                cout << "Enter value: ";
+                cin >> value;
+                q.push(value);
+                break;
+
+            case 6:
+                q.pop();
+                break;
+
+            case 7:
+                cout << (q.empty() ? "Queue is empty\n" :
+                                     "Queue is not empty\n");
+                break;
+
+            case 8:
+                cout << (q.full() ? "Queue is full\n" :
+                                    "Queue is not full\n");
+                break;
+
+            case 9:
+                cout << "Exiting program...\n";
+                break;
+
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 9);
 
     return 0;
 }

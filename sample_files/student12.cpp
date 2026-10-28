@@ -1,47 +1,61 @@
+
 #include <iostream>
+#include <stack>
 #include <string>
+#include <cctype>
 using namespace std;
 
-class BankAccount {
-private:
-    string owner;
-    double balance;
+class Converter {
+    stack<char> s;
+
+    int priority(char op) {
+        if (op == '*' || op == '/') return 2;
+        if (op == '+' || op == '-') return 1;
+        return 0;
+    }
 
 public:
-    BankAccount(string name, double openingBalance)
-        : owner(name), balance(openingBalance >= 0 ? openingBalance : 0) {}
+    void convert(string exp) {
+        string post = "";
 
-    void deposit(double amount) {
-        if (amount > 0) {
-            balance += amount;
-            cout << "Deposit complete.\n";
-        } else {
-            cout << "Amount must be positive.\n";
+        for (char c : exp) {
+            if (isalnum(c))
+                post += c;
+            else if (c == '(')
+                s.push(c);
+            else if (c == ')') {
+                while (!s.empty() && s.top() != '(') {
+                    post += s.top();
+                    s.pop();
+                }
+                if (!s.empty()) s.pop();
+            }
+            else {
+                while (!s.empty() && s.top() != '(' &&
+                       priority(s.top()) >= priority(c)) {
+                    post += s.top();
+                    s.pop();
+                }
+                s.push(c);
+            }
         }
-    }
 
-    void withdraw(double amount) {
-        if (amount <= 0)
-            cout << "Invalid withdrawal.\n";
-        else if (amount > balance)
-            cout << "Insufficient funds.\n";
-        else {
-            balance -= amount;
-            cout << "Withdrawal complete.\n";
+        while (!s.empty()) {
+            post += s.top();
+            s.pop();
         }
-    }
 
-    void show() const {
-        cout << "Account owner: " << owner << '\n';
-        cout << "Balance: Rs. " << balance << '\n';
+        cout << "Postfix: " << post << endl;
     }
 };
 
 int main() {
-    BankAccount account("Ananya", 2500.0);
-    account.show();
-    account.deposit(750.0);
-    account.withdraw(400.0);
-    account.show();
+    Converter obj;
+    string exp;
+
+    cout << "Enter infix: ";
+    cin >> exp;
+    obj.convert(exp);
+
     return 0;
 }

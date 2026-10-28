@@ -1148,8 +1148,11 @@ comparisonTip->setStyleSheet(
 
             for (const Result &result : allResults)
             {
-                if (result.category == "High")
+               if (result.category == "High" ||
+                    result.category == "Very High")
+                {
                     highCount++;
+                }
                 else if (result.category == "Moderate" ||
                          result.category == "Medium")
                     moderateCount++;

@@ -1,30 +1,60 @@
+
 #include <iostream>
-#include <string>
-#include <algorithm>
 using namespace std;
 
-int main() {
-    string text;
-    cout << "Enter a sentence: ";
-    getline(cin, text);
+class Stack {
+    int a[5], top = -1;
 
-    string reversed = text;
-    reverse(reversed.begin(), reversed.end());
+public:
+    bool empty() { return top == -1; }
+    bool full() { return top == 4; }
 
-    cout << "Original text: " << text << '\n';
-    cout << "Reversed text: " << reversed << '\n';
-
-    int vowels = 0;
-    for (char ch : text) {
-        char lower = static_cast<char>(tolower(
-            static_cast<unsigned char>(ch)));
-        if (lower == 'a' || lower == 'e' || lower == 'i' ||
-            lower == 'o' || lower == 'u') {
-            ++vowels;
-        }
+    void push(int x) {
+        if (full()) cout << "Stack full\n";
+        else a[++top] = x;
     }
 
-    cout << "Vowel count: " << vowels << '\n';
-    cout << "Character count: " << text.size() << '\n';
+    void pop() {
+        if (empty()) cout << "Stack empty\n";
+        else cout << "Popped: " << a[top--] << endl;
+    }
+};
+
+class Queue {
+    int a[5], front = 0, rear = -1;
+
+public:
+    bool empty() { return front > rear; }
+    bool full() { return rear == 4; }
+
+    void push(int x) {
+        if (full()) cout << "Queue full\n";
+        else a[++rear] = x;
+    }
+
+    void pop() {
+        if (empty()) cout << "Queue empty\n";
+        else cout << "Removed: " << a[front++] << endl;
+    }
+};
+
+int main() {
+    Stack s;
+    Queue q;
+    int x;
+
+    cout << "Enter a value for stack: ";
+    cin >> x;
+    s.push(x);
+    s.pop();
+
+    cout << "Enter a value for queue: ";
+    cin >> x;
+    q.push(x);
+    q.pop();
+
+    cout << "Stack empty: " << s.empty() << endl;
+    cout << "Queue empty: " << q.empty() << endl;
+
     return 0;
 }

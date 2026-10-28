@@ -1,35 +1,65 @@
+
 #include <iostream>
-#include <iomanip>
+#include <stack>
+#include <string>
 using namespace std;
 
-int main() {
-    string studentName;
-    double marks[5], total = 0;
+class Conversion {
+    stack<char> s;
 
-    cout << "Enter student name: ";
-    getline(cin, studentName);
-
-    for (int i = 0; i < 5; ++i) {
-        cout << "Enter mark for subject " << i + 1 << ": ";
-        cin >> marks[i];
-        if (marks[i] < 0 || marks[i] > 100) {
-            cout << "Marks must be between 0 and 100.\n";
-            return 1;
-        }
-        total += marks[i];
+    int priority(char op) {
+        if (op == '^') return 3;
+        if (op == '*' || op == '/') return 2;
+        if (op == '+' || op == '-') return 1;
+        return 0;
     }
 
-    double average = total / 5;
-    cout << fixed << setprecision(2);
-    cout << "\nStudent: " << studentName << '\n';
-    cout << "Total: " << total << '\n';
-    cout << "Average: " << average << '\n';
+public:
+    void convert(string infix) {
+        string postfix = "";
 
-    if (average >= 90) cout << "Grade: A\n";
-    else if (average >= 75) cout << "Grade: B\n";
-    else if (average >= 60) cout << "Grade: C\n";
-    else if (average >= 40) cout << "Grade: D\n";
-    else cout << "Grade: F\n";
+        for (char c : infix) {
+            if (isalnum(c)) {
+                postfix += c;
+            }
+            else if (c == '(') {
+                s.push(c);
+            }
+            else if (c == ')') {
+                while (!s.empty() && s.top() != '(') {
+                    postfix += s.top();
+                    s.pop();
+                }
+                if (!s.empty()) s.pop();
+            }
+            else {
+                while (!s.empty() && s.top() != '(' &&
+                       (priority(s.top()) > priority(c) ||
+                       (priority(s.top()) == priority(c) && c != '^'))) {
+                    postfix += s.top();
+                    s.pop();
+                }
+                s.push(c);
+            }
+        }
+
+        while (!s.empty()) {
+            postfix += s.top();
+            s.pop();
+        }
+
+        cout << "Postfix expression: " << postfix << endl;
+    }
+};
+
+int main() {
+    Conversion obj;
+    string infix;
+
+    cout << "Enter infix expression: ";
+    cin >> infix;
+
+    obj.convert(infix);
 
     return 0;
 }

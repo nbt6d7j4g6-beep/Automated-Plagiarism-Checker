@@ -1,32 +1,68 @@
+
 #include <iostream>
+#include <stack>
+#include <string>
+#include <cctype>
 using namespace std;
 
-bool isPrime(int number) {
-    if (number < 2)
-        return false;
+class InfixPostfix {
+    stack<char> st;
 
-    for (int divisor = 2; divisor * divisor <= number; ++divisor) {
-        if (number % divisor == 0)
-            return false;
+    int precedence(char op) {
+        if (op == '^') return 3;
+        if (op == '*' || op == '/') return 2;
+        if (op == '+' || op == '-') return 1;
+        return 0;
     }
-    return true;
-}
+
+public:
+    void convertExpression(string exp) {
+        string result = "";
+
+        for (char ch : exp) {
+            if (isalnum(ch)) {
+                result += ch;
+            }
+            else if (ch == '(') {
+                st.push(ch);
+            }
+            else if (ch == ')') {
+                while (!st.empty() && st.top() != '(') {
+                    result += st.top();
+                    st.pop();
+                }
+                if (!st.empty())
+                    st.pop();
+            }
+            else {
+                while (!st.empty() && st.top() != '(' &&
+                       (precedence(st.top()) > precedence(ch) ||
+                       (precedence(st.top()) == precedence(ch) &&
+                        ch != '^'))) {
+                    result += st.top();
+                    st.pop();
+                }
+                st.push(ch);
+            }
+        }
+
+        while (!st.empty()) {
+            result += st.top();
+            st.pop();
+        }
+
+        cout << "Converted postfix: " << result << endl;
+    }
+};
 
 int main() {
-    int value;
-    cout << "Enter an integer: ";
-    cin >> value;
+    InfixPostfix converter;
+    string expression;
 
-    if (isPrime(value))
-        cout << value << " is prime.\n";
-    else
-        cout << value << " is not prime.\n";
+    cout << "Enter an infix expression: ";
+    cin >> expression;
 
-    cout << "Prime numbers from 2 to 50:\n";
-    for (int n = 2; n <= 50; ++n) {
-        if (isPrime(n))
-            cout << n << ' ';
-    }
-    cout << '\n';
+    converter.convertExpression(expression);
+
     return 0;
 }

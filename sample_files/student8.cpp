@@ -1,36 +1,61 @@
+
 #include <iostream>
+#include <stack>
 #include <string>
 #include <cctype>
 using namespace std;
 
-int main() {
-    string input, cleaned;
-    cout << "Enter a word or phrase: ";
-    getline(cin, input);
+class ExpressionConverter {
+    stack<char> operators;
 
-    for (unsigned char ch : input) {
-        if (isalnum(ch))
-            cleaned += static_cast<char>(tolower(ch));
+    int precedence(char symbol) {
+        if (symbol == '*' || symbol == '/') return 2;
+        if (symbol == '+' || symbol == '-') return 1;
+        return 0;
     }
 
-    bool palindrome = true;
-    int left = 0;
-    int right = static_cast<int>(cleaned.size()) - 1;
+public:
+    void toPostfix(string expression) {
+        string output = "";
 
-    while (left < right) {
-        if (cleaned[left] != cleaned[right]) {
-            palindrome = false;
-            break;
+        for (char ch : expression) {
+            if (isalnum(ch))
+                output += ch;
+            else if (ch == '(')
+                operators.push(ch);
+            else if (ch == ')') {
+                while (!operators.empty() && operators.top() != '(') {
+                    output += operators.top();
+                    operators.pop();
+                }
+                if (!operators.empty()) operators.pop();
+            }
+            else {
+                while (!operators.empty() && operators.top() != '(' &&
+                       precedence(operators.top()) >= precedence(ch)) {
+                    output += operators.top();
+                    operators.pop();
+                }
+                operators.push(ch);
+            }
         }
-        ++left;
-        --right;
+
+        while (!operators.empty()) {
+            output += operators.top();
+            operators.pop();
+        }
+
+        cout << "Postfix expression: " << output << endl;
     }
+};
 
-    if (palindrome)
-        cout << "The input is a palindrome.\n";
-    else
-        cout << "The input is not a palindrome.\n";
+int main() {
+    ExpressionConverter converter;
+    string input;
 
-    cout << "Normalized input: " << cleaned << '\n';
+    cout << "Enter expression: ";
+    cin >> input;
+    converter.toPostfix(input);
+
     return 0;
 }

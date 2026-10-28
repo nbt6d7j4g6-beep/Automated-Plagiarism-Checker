@@ -1,35 +1,89 @@
+
 #include <iostream>
-#include <iomanip>
 using namespace std;
 
-int main() {
-    double scores[5], sum = 0.0;
-    string name;
+class Stack {
+    int arr[5], top;
 
-    cout << "Student full name: ";
-    getline(cin, name);
-
-    for (int subject = 0; subject < 5; subject++) {
-        cout << "Score " << subject + 1 << ": ";
-        cin >> scores[subject];
-        if (scores[subject] > 100 || scores[subject] < 0) {
-            cout << "Invalid score entered.\n";
-            return 1;
-        }
-        sum = sum + scores[subject];
+public:
+    Stack() {
+        top = -1;
     }
 
-    double mean = sum / 5.0;
-    cout << fixed << setprecision(2);
-    cout << "\nName: " << name << endl;
-    cout << "Sum of marks: " << sum << endl;
-    cout << "Mean score: " << mean << endl;
+    bool empty() {
+        return top == -1;
+    }
 
-    if (mean >= 90) cout << "Grade A\n";
-    else if (mean >= 75) cout << "Grade B\n";
-    else if (mean >= 60) cout << "Grade C\n";
-    else if (mean >= 40) cout << "Grade D\n";
-    else cout << "Grade F\n";
+    bool full() {
+        return top == 4;
+    }
+
+    void push(int x) {
+        if (full())
+            cout << "Stack is full\n";
+        else
+            arr[++top] = x;
+    }
+
+    void pop() {
+        if (empty())
+            cout << "Stack is empty\n";
+        else
+            cout << "Popped: " << arr[top--] << endl;
+    }
+};
+
+class Queue {
+    int arr[5], front, rear;
+
+public:
+    Queue() {
+        front = 0;
+        rear = -1;
+    }
+
+    bool empty() {
+        return rear < front;
+    }
+
+    bool full() {
+        return rear == 4;
+    }
+
+    void push(int x) {
+        if (full())
+            cout << "Queue is full\n";
+        else
+            arr[++rear] = x;
+    }
+
+    void pop() {
+        if (empty())
+            cout << "Queue is empty\n";
+        else
+            cout << "Removed: " << arr[front++] << endl;
+    }
+};
+
+int main() {
+    Stack s;
+    Queue q;
+
+    cout << "STACK\n";
+    s.push(10);
+    s.push(20);
+    s.push(30);
+    s.pop();
+    cout << "Empty: " << s.empty() << endl;
+    cout << "Full: " << s.full() << endl;
+
+    cout << "\nQUEUE\n";
+    q.push(10);
+    q.push(20);
+    q.push(30);
+    q.pop();
+    cout << "Empty: " << q.empty() << endl;
+    cout << "Full: " << q.full() << endl;
 
     return 0;
 }
