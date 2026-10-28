@@ -492,6 +492,26 @@ int main(int argc, char *argv[])
 
     SimilarityPieChart *pieChart = new SimilarityPieChart();
 
+    // Instruction to help users discover the comparison feature
+QLabel *comparisonTip = new QLabel(
+    "Tip: Double-click any result row to open the side-by-side "
+    "comparison window and view highlighted matching text."
+);
+
+comparisonTip->setWordWrap(true);
+
+comparisonTip->setStyleSheet(
+    "QLabel {"
+    "    color: #60A5FA;"
+    "    background-color: #1F2937;"
+    "    border: 1px solid #374151;"
+    "    border-radius: 6px;"
+    "    padding: 10px;"
+    "    font-size: 10pt;"
+    "    font-weight: 600;"
+    "}"
+);
+
     // Results table
     QTableWidget *table = new QTableWidget(0, 5);
 
@@ -522,6 +542,11 @@ int main(int argc, char *argv[])
     );
 
     table->setAlternatingRowColors(true);
+
+    table->setToolTip(
+    "Double-click any result row to open the side-by-side "
+    "comparison window and view highlighted matching text."
+);
 
     table->setHorizontalHeaderLabels({
         "File 1",
@@ -774,6 +799,9 @@ int main(int argc, char *argv[])
     layout->addWidget(progressBar);
     layout->addWidget(checkButton);
     layout->addWidget(exportButton);
+
+    // Show the comparison instruction directly above the results
+    layout->addWidget(comparisonTip);
     layout->addWidget(table, 1);
 
     // Select Folder button
