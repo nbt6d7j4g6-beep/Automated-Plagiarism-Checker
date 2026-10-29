@@ -1,0 +1,26 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{pdflscape}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,calc}
+\begin{document}
+
+\section*{Comparison Management}
+\begin{figure}[H]\centering
+\begin{tikzpicture}[node distance=8mm, every node/.style={draw,rounded corners,align=center,minimum width=5.5cm,minimum height=8mm}, flow/.style={-{Stealth},thick}]
+\node (n0) {List of discovered files};
+\node (n1) [below=of n0] {Select file pairs};
+\node (n2) [below=of n1] {Read and process each file};
+\node (n3) [below=of n2] {Generate n-grams};
+\node (n4) [below=of n3] {Calculate pairwise similarity};
+\node (n5) [below=of n4] {Send result to PlagiarismReport};
+\draw[flow] (n0)--(n1);
+\draw[flow] (n1)--(n2);
+\draw[flow] (n2)--(n3);
+\draw[flow] (n3)--(n4);
+\draw[flow] (n4)--(n5);
+\end{tikzpicture}
+
+\caption{Comparison Management workflow.}\end{figure}
+\end{document}
