@@ -1,0 +1,666 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.multipart, shapes.geometric, calc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\onehalfspacing
+
+% ---------------------------------------------------------------
+% Numbering: every number carries the 26 prefix.
+% Chapter 1 -> 26.1, sections 1.x -> 26.1.x, subsections 1.x.y -> 26.1.x.y
+% ---------------------------------------------------------------
+\renewcommand{\thechapter}{26.1}
+\AtBeginDocument{\renewcommand{\thelstlisting}{\thechapter.\arabic{lstlisting}}}
+
+\lstset{
+  language={C++},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  keepspaces=true,
+  columns=fullflexible,
+  xleftmargin=4pt,
+  xrightmargin=4pt
+}
+
+\captionsetup{font=small, labelfont=bf}
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% Title page
+% ---------------------------------------------------------------
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\large\bfseries INDIAN INSTITUTE OF INFORMATION TECHNOLOGY\par}
+{\large\bfseries TIRUCHIRAPPALLI\par}
+\vspace{0.4cm}
+{\normalsize Department of Computer Science and Engineering\par}
+\vspace{2.2cm}
+{\Huge\bfseries Automated Plagiarism Checker\par}
+\vspace{0.5cm}
+{\large Detecting similarity between text and source code files using N-gram analysis\par}
+\vspace{0.8cm}
+{\large Mini Project Report\par}
+{\large Object-Oriented Programming with C++\par}
+\vspace{2cm}
+{\normalsize Submitted by\par}
+\vspace{0.3cm}
+{\normalsize Charan Teja Konapala (Roll No. 251114)\par}
+{\normalsize Rushitha Gangavarapu (Roll No. 251121)\par}
+\vspace{1.2cm}
+{\normalsize Under the guidance of\par}
+\vspace{0.3cm}
+{\normalsize Dr. Anoop Jacob Thomas\par}
+\vspace{2cm}
+{\normalsize Academic Year 2026\par}
+\end{titlepage}
+
+% ---------------------------------------------------------------
+% Front matter
+% ---------------------------------------------------------------
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ---------------------------------------------------------------
+% Chapter
+% ---------------------------------------------------------------
+\chapter{Automated Plagiarism Checker}
+
+\section*{Abstract}
+Automated Plagiarism Checker is a C++ desktop application that compares multiple text and source code files and measures how similar they are. It uses word-level N-gram analysis (N = 3 by default, selectable as 2, 3 or 5 words) to turn every file into a set of overlapping word sequences, compares those sets, and reports a similarity percentage for every pair of files. Each result is classified into a category (Low, Moderate, High or Very High), and the matching text fragments are shown so that a reviewer can see exactly why two files were flagged. The system has a Qt-based graphical front end, a C++ back end built from separate, independent classes, and persistent storage through exportable TXT, JSON and CSV reports.
+
+% ---------------------------------------------------------------
+\section{Introduction and Problem Statement}
+In academic settings, programming assignments and written work are routinely submitted by dozens of students. Manually checking every submission against every other submission is slow, inconsistent and practically impossible as the number of files grows: for $n$ files there are $n(n-1)/2$ pairs to compare. Students can also hide copying by renaming variables, changing spacing or reordering lines, which makes simple visual inspection unreliable.
+
+The problem addressed by this project is therefore: to design and implement an automated, offline desktop tool that accepts a collection of text or source code files, quantifies the similarity between every pair of files, and presents the results in a clear, reviewable and exportable form.
+
+\subsection{Objectives}
+\begin{itemize}[noitemsep]
+  \item Load several text and source code files from a folder selected by the user.
+  \item Normalise the content so that formatting differences do not hide similarity.
+  \item Generate N-grams for each file and compute a similarity percentage for each pair.
+  \item Categorise the similarity level and list the matching text fragments.
+  \item Present results in a GUI and export them to persistent report files (TXT, JSON, CSV).
+  \item Apply core object-oriented principles and robust error handling in a maintainable, modular code base.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Scope and Feature Set}
+\subsection{In scope}
+\begin{itemize}[noitemsep]
+  \item Pairwise comparison: text and source code files compared with N-gram analysis. Accepted types are .txt, .cpp, .h, .hpp, .c, .cc, .cxx, .py, .java, .js, .ts, .cs, .php, .html and .css (extension check is not case-sensitive).
+  \item Pre-processing: case and whitespace normalisation of every file.
+  \item Similarity: percentage calculation and category classification.
+  \item Fragment viewer: matching fragments are shown side by side for each pair.
+  \item GUI: folder selection, N-gram size selection, running the comparison, and searching, filtering, sorting and viewing results.
+  \item Persistent storage: TXT, JSON and CSV reports.
+  \item Error handling: unreadable files, empty input and failed exports.
+\end{itemize}
+
+\subsection{Out of scope}
+\begin{itemize}[noitemsep]
+  \item Comparison against internet sources, online repositories or a database of past submissions.
+  \item Semantic or AST-level detection of the same algorithm written with a different structure.
+  \item Binary, image or PDF documents.
+  \item Multi-user, network or web-based deployment.
+  \item Automatic disciplinary decisions: the tool only reports similarity, and the final judgement rests with a human reviewer.
+\end{itemize}
+
+\subsection{Assumptions and constraints}
+\begin{itemize}[noitemsep]
+  \item Input files are plain text and readable by the user running the program.
+  \item The tool was developed and tested on Windows with a C++17 compiler (\texttt{std::filesystem} for file handling) and the Qt framework for the GUI.
+  \item Similarity is a statistical indicator, not proof of plagiarism; common boilerplate such as \texttt{\#include <iostream>} or \texttt{using namespace std;} can produce small amounts of legitimate overlap.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Background: N-Gram Similarity}
+\subsection{N-grams and pre-processing}
+An N-gram is a contiguous sequence of N tokens taken from a text. In this project a token is a whitespace-separated word, so the N-grams are word-level. Before N-grams are generated, \texttt{TextProcessor} converts the text to lower case and collapses every run of spaces, tabs and line breaks into a single space. For $N = 3$, the statement \texttt{cout << x << endl;} has five tokens and therefore produces three overlapping N-grams: \texttt{cout << x}, \texttt{<< x <<} and \texttt{x << endl;}. A file with fewer than N words produces no N-grams.
+
+\subsection{Similarity measure}
+The similarity of two files $A$ and $B$ is computed from the sets of their distinct N-grams (the Jaccard index):
+\begin{equation}
+\text{Similarity}(\%) = \frac{|G(A) \cap G(B)|}{|G(A) \cup G(B)|} \times 100
+\end{equation}
+where $G(A)$ and $G(B)$ are the sets of distinct N-grams of the two files. If neither file produces any N-gram, the similarity is defined as 0. Identical files give 100\% and files with no N-gram in common give 0\%. For example, if two files have 10 and 8 distinct N-grams, of which 4 are shared, the union contains $10 + 8 - 4 = 14$ N-grams and the similarity is $4/14 \times 100 \approx 28.6\%$.
+
+\subsection{Similarity categories}
+\texttt{PlagiarismReport::addResult} assigns each pair to a category using fixed thresholds (Table~\ref{tab:cats}).
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+Similarity & Category & Meaning \\
+\midrule
+below 30\% & Low & Overlap is limited to common structure and boilerplate \\
+30\% to below 60\% & Moderate & Noticeable shared code; review recommended \\
+60\% to below 80\% & High & Large shared portions; needs attention \\
+80\% or more & Very High & Files are identical or nearly identical \\
+\bottomrule
+\end{tabularx}
+\caption{Similarity categories used by the report.}
+\label{tab:cats}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{System Architecture and Design}
+\subsection{Separation of concerns}
+The project follows a layered design. The back end contains all logic and has no dependency on the GUI, so it could also be driven from a command-line front end. The front end only collects input and displays output.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{p{3.4cm}p{3.6cm}X}
+\toprule
+Layer & Modules & Responsibility \\
+\midrule
+Presentation (front end) & Qt GUI, SimilarityPieChart & Folder selection, N-gram size selector, Check Similarity button, progress bar, summary cards, pie chart, search box, category filter, sort selector, results table, side-by-side fragment viewer, Export Results to CSV \\
+Application logic (back end) & ComparisonManager & Coordinates the pipeline, runs every pair of files through it and returns the results \\
+Processing & FileManager, TextProcessor, NGramGenerator, SimilarityCalculator & Finding and reading files, normalising text, generating N-grams, computing the similarity percentage and the matching fragments \\
+Output and persistence & PlagiarismReport, Result & Storing results, assigning the similarity category, writing the TXT and JSON reports (the CSV export is triggered from the GUI) \\
+\bottomrule
+\end{tabularx}
+\caption{Layers of the system and the classes in each layer.}
+\label{tab:layers}
+\end{table}
+
+\subsection{Modules}
+\begin{enumerate}[noitemsep]
+  \item \textbf{File Manager} finds the input files in a folder (\texttt{findFiles}) and reads their contents (\texttt{readFile}).
+  \item \textbf{Text Processor} cleans and normalises the text (\texttt{processText}).
+  \item \textbf{N-Gram Generator} converts the processed text into overlapping word-level N-grams of the requested size, 3 by default (\texttt{generateNGrams}).
+  \item \textbf{Similarity Calculator} compares the N-grams of two files and returns a percentage (\texttt{calculateSimilarity}) and the list of shared fragments (\texttt{findMatchingNGrams}).
+  \item \textbf{Comparison Manager} runs every pair of files through the pipeline, reports progress through a callback and returns the results (\texttt{compareFiles}).
+  \item \textbf{Result Manager and Report Generator} are implemented together in the \texttt{PlagiarismReport} class, which stores \texttt{Result} objects, assigns each a category and writes the TXT and JSON reports.
+  \item \textbf{GUI} is the Qt desktop interface that ties everything together and adds the CSV export.
+\end{enumerate}
+
+\subsection{Processing flow}
+Figure~\ref{fig:flow} shows the processing flow of the back end, from the input files to the saved reports.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=0.6\textheight]{figures/architecture_final.png}
+\caption{Processing flow of the back end, from the input files to the saved reports.}
+\label{fig:flow}
+\end{figure}
+
+\begin{enumerate}[noitemsep]
+  \item \texttt{FileManager::findFiles} collects the accepted files from the input folder.
+  \item If fewer than two files are found, the program prints an instruction and exits.
+  \item \texttt{ComparisonManager::compareFiles} takes each pair of files and reads them with \texttt{FileManager::readFile}.
+  \item \texttt{TextProcessor::processText} normalises the text of each file.
+  \item \texttt{NGramGenerator::generateNGrams} builds the N-grams (3 by default).
+  \item \texttt{SimilarityCalculator::calculateSimilarity} returns the similarity percentage for the pair.
+  \item \texttt{PlagiarismReport::addResult} stores the result with its category.
+  \item \texttt{saveReport} writes \texttt{plagiarism\_report.txt} and \texttt{saveJsonReport} writes \texttt{plagiarism\_report.json}.
+\end{enumerate}
+
+In the GUI, the Check Similarity button runs the same pipeline and shows the results on screen; the CSV file is written from the Export Results to CSV button.
+
+% ---------------------------------------------------------------
+\section{Object-Oriented Architecture}
+\subsection{Class design and associations}
+Each module is a separate class with one clear job. The only data the design stores is the list of results, which is private inside \texttt{PlagiarismReport} and can be changed only through \texttt{addResult}.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.6cm}X}
+\toprule
+Class & Data & Public interface \\
+\midrule
+FileManager & none & \texttt{findFiles(folderPath) : vector<string>}; \texttt{readFile(filePath) : string} \\
+TextProcessor & none & \texttt{processText(text) : string} \\
+NGramGenerator & none & \texttt{generateNGrams(text, n) : vector<string>} \\
+SimilarityCalculator & none & \texttt{calculateSimilarity(gramsA, gramsB) : double}; \texttt{findMatchingNGrams(gramsA, gramsB) : vector<string>} \\
+ComparisonManager & none & \texttt{compareFiles(files, n = 3, progressCallback) : vector<Result>} \\
+PlagiarismReport & \texttt{-results : vector<Result>} (private) & \texttt{addResult(file1, file2, similarity, matchingNGrams)}; \texttt{saveReport(fileName)}; \texttt{saveJsonReport(fileName, n)}; \texttt{getResults()} \\
+Result (struct) & file1, file2, similarity, category, matchingNGrams & plain data carrier for one compared pair \\
+\bottomrule
+\end{tabularx}
+\caption{Classes, data and public interface of the back end.}
+\label{tab:classes}
+\end{table}
+
+\subsection{Access modifiers}
+\begin{itemize}[noitemsep]
+  \item \textbf{private:} the results vector in \texttt{PlagiarismReport}, so that results are added only through \texttt{addResult}, which also assigns the category.
+  \item \textbf{public:} the small set of operations each class offers to the others (Table~\ref{tab:classes}).
+  \item \texttt{Result} keeps its fields public because it only carries data between \texttt{PlagiarismReport} and the report writers.
+\end{itemize}
+
+\begin{lstlisting}[caption={Encapsulation: the results can only be changed through \texttt{addResult}, which assigns the category.}, label={lst:encap}]
+class PlagiarismReport
+{
+private:
+    vector<Result> results;
+
+public:
+    void addResult(string file1, string file2, double similarity,
+                   vector<string> matchingNGrams);
+    void saveReport(string fileName);
+    void saveJsonReport(string fileName, int n = 3);
+    vector<Result> getResults();
+};
+\end{lstlisting}
+
+\subsection{Composition, aggregation and inheritance}
+The back-end design is built on composition rather than inheritance. \texttt{ComparisonManager::compareFiles} creates local \texttt{FileManager}, \texttt{TextProcessor}, \texttt{NGramGenerator}, \texttt{SimilarityCalculator} and \texttt{PlagiarismReport} objects and delegates one task to each. \texttt{PlagiarismReport} owns a collection of \texttt{Result} objects; the diamond in Figure~\ref{fig:uml} marks this composition.
+
+The project does not use inheritance: there is no class hierarchy between the project classes. Inheritance and runtime polymorphism are only planned (see Section~\ref{sec:future}), where the two report writers could sit behind an abstract \texttt{ReportWriter} base class with a virtual \texttt{write()} function.
+
+The interface of \texttt{compareFiles} is designed for extension without modification. The N-gram size is a parameter with a default of 3, and the function accepts an optional progress callback of type \texttt{std::function<void(int, int)>}, so the back end reports progress without depending on Qt. A console front end can simply omit the callback.
+
+\begin{lstlisting}[caption={Comparison Manager signature: defaults and an optional progress callback.}, label={lst:cmp}]
+class ComparisonManager
+{
+public:
+    vector<Result> compareFiles(
+        vector<string> files,
+        int n = 3,
+        function<void(int, int)> progressCallback = nullptr
+    );
+};
+\end{lstlisting}
+
+\subsection{UML class diagram}
+Figure~\ref{fig:uml} shows the class relationships of the back end.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/uml_final.png}
+\caption{Class relationship diagram of the back end.}
+\label{fig:uml}
+\end{figure}
+
+\texttt{ComparisonManager} has a creates/uses dependency on \texttt{FileManager}, \texttt{TextProcessor}, \texttt{NGramGenerator}, \texttt{SimilarityCalculator} and \texttt{PlagiarismReport}. \texttt{PlagiarismReport} is composed of zero or more \texttt{Result} objects (it stores them), so the results do not exist outside the report.
+
+% ---------------------------------------------------------------
+\section{Advanced C++ Mechanics}
+\subsection{Templates}
+The project relies on the C++ standard library's class templates throughout. A template is written once with a type parameter and then instantiated for each type it is used with.
+\begin{itemize}[noitemsep]
+  \item \texttt{vector<T>} is instantiated as \texttt{vector<string>} for the file list returned by \texttt{FileManager::findFiles} and for the N-grams produced by \texttt{NGramGenerator::generateNGrams}, and as \texttt{vector<Result>} for the results held by \texttt{PlagiarismReport} and returned by \texttt{ComparisonManager::compareFiles}.
+  \item \texttt{set<T>} is instantiated as \texttt{set<string>} inside \texttt{SimilarityCalculator::calculateSimilarity}, where each file's N-grams are converted to a set of distinct values so that the intersection and union sizes can be counted. It is also used in \texttt{FileManager::findFiles} for the list of accepted file extensions.
+  \item \texttt{std::function<R(Args...)>} is instantiated as \texttt{function<void(int, int)>} for the progress callback of \texttt{compareFiles}. It can hold a lambda, a function pointer or a functor. The GUI passes a lambda that updates the progress bar, and a console front end can pass nothing.
+\end{itemize}
+Because these templates are type-safe and resolved at compile time, they provide generic, reusable containers without run-time overhead or manual type casting.
+
+\subsection{Exception handling and error checking}
+Error cases are handled so that a bad input or a failed write does not crash the program or leave a damaged file.
+\begin{itemize}[noitemsep]
+  \item \textbf{Exception handling.} \texttt{FileManager::findFiles} scans the folder inside a \texttt{try} block. If the folder does not exist or cannot be read, \texttt{std::filesystem::directory\_iterator} throws a \texttt{filesystem\_error}. The catch block returns the files found so far (an empty list in that case) instead of letting the exception terminate the program.
+  \item \texttt{FileManager::readFile} checks \texttt{is\_open()} and returns an empty string for an unreadable file. \texttt{ComparisonManager::compareFiles} skips every pair that contains an empty text, so one unreadable file does not stop the comparison of the others.
+  \item \texttt{NGramGenerator::generateNGrams} returns an empty list when $N$ is not positive or when a file has fewer than $N$ words.
+  \item \texttt{PlagiarismReport::saveReport} and \texttt{saveJsonReport} check that the output file was opened before writing to it.
+  \item With fewer than two input files, no empty comparison is run: the GUI shows a Not Enough Files message and the console driver prints an instruction and exits cleanly. If no folder has been chosen, the GUI asks the user to select one.
+  \item In the fragment viewer, both files are reopened; if either cannot be opened, a File Error warning names the file.
+  \item The CSV export writes through a \texttt{QSaveFile} and checks the stream status after writing. If writing failed, an Export Failed message box appears and the write is cancelled with \texttt{cancelWriting()}, so a half-written file is never saved. The file is committed with \texttt{commit()} only when the write succeeded, and a failed commit is reported in a second error dialog.
+\end{itemize}
+
+\begin{lstlisting}[caption={Exception handling in \texttt{FileManager::findFiles}.}, label={lst:exc}]
+try
+{
+    for (const auto& entry : filesystem::directory_iterator(folderPath))
+    {
+        // collect files with accepted extensions
+    }
+}
+catch (const filesystem::filesystem_error&)
+{
+    return files;
+}
+\end{lstlisting}
+
+\subsection{Operator overloading}
+The project does not define any overloaded operators of its own. Operators are used in their predefined form and in the overloaded form provided by the standard library and Qt. \texttt{operator<<} and \texttt{operator>>} of the stream classes write and read data, for example \texttt{file << "- " << gram} in \texttt{PlagiarismReport::saveReport} and \texttt{ss >> word} in \texttt{NGramGenerator::generateNGrams}. \texttt{set<string>} uses the \texttt{operator<} that the standard library provides for strings.
+
+Results are ordered in the GUI with a comparator lambda passed to \texttt{std::sort} rather than an overloaded \texttt{operator<} on \texttt{Result}, because the results table can be sorted either way.
+
+\subsection{Memory management}
+The back end stores all data in standard containers and strings (\texttt{vector<string>} for file lists and N-grams, \texttt{vector<Result>} for the results). These release their memory automatically when they go out of scope, so there is no manual \texttt{new}/\texttt{delete} in the comparison pipeline. In the GUI, widgets are created with \texttt{new} and attached to a parent widget or layout, and Qt's parent-child ownership releases them when the parent window is destroyed.
+
+% ---------------------------------------------------------------
+\section{Frontend and Backend Integration}
+\subsection{Frontend}
+The GUI is built with the Qt framework and presents everything on a single dark-themed window (Figure~\ref{fig:gui}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/gui_main.png}
+\caption{Main window after comparing 13 files (78 pairs).}
+\label{fig:gui}
+\end{figure}
+
+\begin{itemize}[noitemsep]
+  \item A \textbf{Select Folder} button chooses the folder to analyse, and a selector sets the N-gram size (2, 3 or 5 words, default 3). The \textbf{Check Similarity} button starts the comparison, and a progress bar and status message show how far it has got.
+  \item Summary cards show the total number of comparisons and how many pairs fall in the High, Moderate and Low categories (High includes Very High).
+  \item A pie chart shows the share of each category.
+  \item A search box filters the table by file name, a category filter shows only High, Moderate or Low pairs, and a sort selector orders the pairs by similarity.
+  \item A results table lists File 1, File 2, Similarity, Category and a \textbf{View Fragments} button for every pair.
+  \item \textbf{Export Results to CSV} saves the results as a spreadsheet-friendly file.
+\end{itemize}
+
+\textbf{View Fragments} opens a side-by-side window in which the matching text is highlighted in both files (Figure~\ref{fig:viewer}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/fragment_viewer.png}
+\caption{Side-by-side fragment viewer for student12.cpp and student3.cpp (39.59\%, Moderate).}
+\label{fig:viewer}
+\end{figure}
+
+\subsection{Backend}
+The back end is standard C++ code that finds and reads the files, processes the text, generates the N-grams and calculates the similarity. The GUI calls \texttt{compareFiles} on the Comparison Manager, passing the files found, the selected $N$ and a progress callback, and receives the list of results; it never performs the comparison itself. \texttt{compareFiles} also writes the TXT and JSON reports before returning. This separation means the logic can be tested independently of the interface.
+
+\subsection{Persistent storage and file I/O}
+Results are saved to disk in three formats (Table~\ref{tab:formats}). The TXT and JSON reports are written automatically at the end of every comparison, in the program's working directory, and are overwritten by the next run. The CSV file is written only when the user clicks Export Results to CSV and chooses a location.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llll X}
+\toprule
+Format & File & Written by & \multicolumn{1}{l}{Purpose} \\
+\midrule
+TXT & \texttt{plagiarism\_report.txt} & \texttt{PlagiarismReport::saveReport} & Human-readable report with file pair, similarity, category and matching fragments \\
+JSON & \texttt{plagiarism\_report.json} & \texttt{PlagiarismReport::saveJsonReport} & Machine-readable output with project name, N-gram size and all results; quotes, backslashes, newlines, carriage returns and tabs are escaped \\
+CSV & \texttt{plagiarism\_results.csv} & GUI export button (\texttt{QSaveFile}) & Spreadsheet-friendly table: File 1, File 2, Similarity (\%), Category, Matching Text Fragments (joined with semicolons) \\
+\bottomrule
+\end{tabularx}
+\caption{Persistent report formats.}
+\label{tab:formats}
+\end{table}
+
+Figure~\ref{fig:pipeline} shows how a result is stored, categorised and written to the TXT and JSON reports.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={rectangle, draw, rounded corners=2pt, fill=blue!6, align=center,
+              text width=3.4cm, minimum height=0.8cm, inner sep=3pt, font=\footnotesize},
+  dec/.style={diamond, draw, fill=yellow!15, align=center, text width=3.0cm,
+              inner sep=1pt, font=\footnotesize},
+  arr/.style={-{Stealth[length=2.5mm]}, thick}
+]
+\node[box, minimum width=5.6cm] (add) at (0,0) {\texttt{addResult(file1, file2, similarity)}};
+\node[dec] (thr) at (0,-2.9) {Similarity threshold};
+\node[box] (low) at (-5.2,-4.8) {Low: $<$ 30\%};
+\node[box] (mod) at (0,-4.8) {Moderate: 30\% to $<$ 60\%};
+\node[box, text width=3.8cm] (high) at (5.2,-4.8) {High: 60\% to $<$ 80\%\\Very High: $\geq$ 80\%};
+\node[box, minimum width=5.6cm] (store) at (0,-7.4) {Store result in results vector};
+\node[box, minimum width=4.6cm] (txt) at (-3.6,-10.0) {\texttt{saveReport()}: TXT file};
+\node[box, minimum width=4.6cm] (json) at (3.6,-10.0) {\texttt{saveJsonReport()}: JSON file};
+
+\draw[arr] (add) -- (thr);
+\draw[arr] (thr) -- (low);
+\draw[arr] (thr) -- (mod);
+\draw[arr] (thr) -- (high);
+\draw[arr] (low.south) |- (store.west);
+\draw[arr] (mod) -- (store);
+\draw[arr] (high.south) |- (store.east);
+\draw[arr] (store.south) -- (txt.north);
+\draw[arr] (store.south) -- (json.north);
+\end{tikzpicture}
+\caption{How a result is stored, categorised and written to the TXT and JSON reports.}
+\label{fig:pipeline}
+\end{figure}
+
+\noindent\textit{Note: PlagiarismReport classifies similarity and exports TXT and JSON. CSV export is not implemented in the supplied source.}
+
+The Export Results to CSV button opens a standard save dialog with \texttt{plagiarism\_results} as the suggested file name (Figure~\ref{fig:save}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/csv_save_dialog.png}
+\caption{Export Results to CSV save dialog.}
+\label{fig:save}
+\end{figure}
+
+The three report files as they appear after a run are shown in Figures~\ref{fig:txt}, \ref{fig:json} and \ref{fig:csv}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/report_txt.png}
+\caption{\texttt{plagiarism\_report.txt}, with one block per file pair (files, similarity, category and matching fragments).}
+\label{fig:txt}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/report_json.png}
+\caption{\texttt{plagiarism\_report.json}, showing the project name, n\_gram\_size of 3 and the results array.}
+\label{fig:json}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/report_csv.png}
+\caption{\texttt{plagiarism\_results.csv}, one row per pair (student11 and student8 at 100.00, Very High; student12 and student3 at 39.59, Moderate).}
+\label{fig:csv}
+\end{figure}
+
+% ---------------------------------------------------------------
+\section{Implementation Summary}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{p{3.6cm}X}
+\toprule
+Item & Detail \\
+\midrule
+Language & C++ (C++17, \texttt{std::filesystem}) \\
+GUI framework & Qt Widgets (\texttt{QFileDialog}, \texttt{QMessageBox}, \texttt{QTableWidget}, \texttt{QTextStream}, \texttt{QSaveFile}) \\
+Algorithm & Word-level N-gram analysis; N selectable (2, 3 or 5), default 3; similarity = shared $\div$ combined distinct N-grams (Jaccard index) \\
+Input & Text and source code files (.txt, .cpp, .h, .hpp, .c, .cc, .cxx, .py, .java, .js, .ts, .cs, .php, .html, .css) from a user-selected folder \\
+Output & On-screen results (searchable, filterable, sortable); TXT, JSON and CSV reports \\
+Repository layout & \texttt{src/} (back-end classes), \texttt{gui/} (Qt front end), \texttt{sample\_files/} and \texttt{less\_sample\_files/} (test data), \texttt{docs/}, \texttt{diagrams/}, planning and README documents \\
+\bottomrule
+\end{tabularx}
+\caption{Implementation summary.}
+\label{tab:impl}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{Technology Stack}
+\label{sec:tech}
+The application is written in C++17 and built for Windows. The back end uses only the C++ standard library, and the graphical front end uses the Qt 6 Widgets module. The program is standalone: it does not use a database, a network service or any external API, so all processing happens offline on the user's machine. Table~\ref{tab:techstack} lists the tools used to write, build and document the project.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{p{3.4cm}p{4.2cm}X}
+\toprule
+Category & Technology and version & Role in the project \\
+\midrule
+Programming language & C++, standard C++17 (\texttt{CMAKE\_CXX\_STANDARD 17}) & Implementation of the back end and the GUI \\
+Standard library & \texttt{vector}, \texttt{set}, \texttt{string}, \texttt{function}; \texttt{<filesystem>}, \texttt{<fstream>}, \texttt{<algorithm>} & Containers, file discovery and reading, callbacks and sorting \\
+GUI framework & Qt 6.12.0, Widgets module (\texttt{Qt6::Widgets}) & Windows, dialogs, results table, progress bar, layouts and the \texttt{QSaveFile} CSV export \\
+Compiler & MinGW-w64 GCC (\texttt{g++}), GCC 13.1.0 & Compiles the C++ sources for Windows \\
+Build system & CMake 3.30.5 (minimum version 3.21) & Describes the GUI target, the source files and the include paths \\
+Build generator & Ninja & Runs the compile and link steps \\
+Editor and IDE & Visual Studio Code (with CMake support), Qt Creator project files & Writing and building the code \\
+Version control & Git, hosted on GitHub (public repository) & History of 51 commits on the \texttt{main} branch; collaboration between the two members \\
+Documentation and diagrams & LaTeX with TikZ & UML class diagram, flowcharts and this report \\
+Target platform & Windows desktop & Platform on which the program was developed and tested \\
+\bottomrule
+\end{tabularx}
+\caption{Technology stack of the Automated Plagiarism Checker.}
+\label{tab:techstack}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{Version Control (Git)}
+The project is maintained in a public Git repository (Automated-Plagiarism-Checker) hosted on GitHub.
+\begin{itemize}[noitemsep]
+  \item \textbf{Planning first:} a \texttt{PLANNING.md} file records the project overview and the planned modules, and \texttt{README.md} summarises the project, so the design intent is documented in the repository itself.
+  \item \textbf{Incremental commits:} work was committed in small, focused steps, one change or feature at a time, with descriptive commit messages.
+  \item \textbf{Repository hygiene:} a \texttt{.gitignore} excludes the GUI build directory, the compiled executable and the generated report files.
+  \item \textbf{Reviewing changes:} \texttt{git diff} and \texttt{git status --short} were used before committing.
+  \item \textbf{Collaboration:} each member works on separate modules or features and merges them into the shared repository.
+\end{itemize}
+
+Figure~\ref{fig:github} shows the public repository on the main branch, with 51 commits. The latest commit messages describe one change each, for example ``Display matching text fragments side by side with highlighting'', ``Add comparison progress indicator'' and ``Clear stale results before new comparisons''.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/github_repo.png}
+\caption{The public GitHub repository on branch main, with 51 commits.}
+\label{fig:github}
+\end{figure}
+
+% ---------------------------------------------------------------
+\section{Testing and Results}
+\subsection{Test data}
+The application was tested on a \texttt{sample\_files} folder of 13 small C++ programs (student1.cpp to student13.cpp), using the default N-gram size of 3. Several of them solve the same task, such as converting an expression with a stack, so they naturally share structure. With 13 files the tool compares 78 unique pairs.
+
+\subsection{Observed results}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{Xr}
+\toprule
+Measure & Value \\
+\midrule
+Files compared & 13 \\
+File pairs analysed & 78 \\
+N-gram size & 3 \\
+Pairs rated Very High (80\% or more) & 1 (1.3\%) \\
+Pairs rated High (60\% to below 80\%) & 0 (0\%) \\
+Pairs rated Moderate (30\% to below 60\%) & 2 (2.6\%) \\
+Pairs rated Low (below 30\%) & 75 (96.2\%) \\
+\bottomrule
+\end{tabularx}
+\caption{Observed results on the 13-file test set.}
+\label{tab:results}
+\end{table}
+
+Percentages are rounded to one decimal place. Key findings (Figure~\ref{fig:gui}):
+\begin{itemize}[noitemsep]
+  \item \texttt{student11.cpp} and \texttt{student8.cpp}: 100\% (Very High). The files are identical in content, and the tool placed this pair at the top of the results table.
+  \item \texttt{student12.cpp} and \texttt{student3.cpp}: 39.59\% (Moderate). The side-by-side viewer (Figure~\ref{fig:viewer}) highlights the same \texttt{\#include} lines, the same \texttt{using namespace std;} line, a class that wraps a \texttt{stack<char>} and the same \texttt{priority(char op)} function. The two classes use different names (\texttt{Converter} and \texttt{Conversion}), which is a typical sign of partly reused code.
+  \item \texttt{student4.cpp} and \texttt{student7.cpp}: 36.54\% (Moderate). Besides the common boilerplate, their matching fragments show the same stack class structure: \texttt{class stack}, \texttt{top = -1;} and the member functions \texttt{empty()}, \texttt{full()}, \texttt{push(int x)} and \texttt{pop()}.
+  \item The remaining 75 pairs are Low. Their overlap is limited to common program structure and standard C++ boilerplate, which is expected between independent programs.
+\end{itemize}
+
+\subsection{Evaluation}
+The results show that the tool (a) detects exact duplicates reliably, (b) picks up partially copied code even when class names have been changed, (c) keeps independent programs in the Low category, and (d) explains each result through highlighted matching fragments so that a reviewer can verify a finding quickly.
+
+\subsection{Error and edge-case testing}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{p{5.4cm}X}
+\toprule
+Scenario & Expected behaviour \\
+\midrule
+No folder selected & Warning asking the user to select a folder first; no comparison is run \\
+Folder with fewer than two files & Not Enough Files message; no comparison is run \\
+Unreadable or missing file & File is skipped (its pairs produce no result); the program continues with the other files \\
+Export to a location that cannot be written & Export Failed dialog; incomplete file is not saved \\
+Identical files & 100\% similarity, Very High category (student11.cpp and student8.cpp) \\
+Files differing only in indentation, blank lines or extra spaces between words & Still detected as highly similar because of text normalisation \\
+File with fewer than N words & No N-grams are produced for that file, so its similarity with other files is 0 \\
+\bottomrule
+\end{tabularx}
+\caption{Error and edge-case testing.}
+\label{tab:edge}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{Limitations}
+\begin{itemize}[noitemsep]
+  \item The method is lexical: code with the same logic written using a different structure, or with heavily renamed identifiers, may score lower than it deserves.
+  \item Tokens are separated only by whitespace, so adding or removing spaces around operators and brackets (for example \texttt{a+b} versus \texttt{a + b}) changes the N-grams.
+  \item Common boilerplate raises the baseline similarity between all C++ programs; the Low category absorbs this.
+  \item Only files supplied by the user are compared; there is no comparison with external sources.
+  \item Similarity thresholds (30\%, 60\% and 80\%) are fixed in \texttt{PlagiarismReport::addResult} and may need adjustment for different assignment types or file lengths.
+  \item \texttt{findMatchingNGrams} does not remove repeated fragments, so the same fragment can appear more than once in a pair's report.
+  \item Every file is read and processed again for each pair in which it takes part, and the comparison runs on the GUI thread, so very large folders will be slow.
+  \item \texttt{saveReport} and \texttt{saveJsonReport} return silently if their output file cannot be opened; the user is not notified.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Future Enhancements}
+\label{sec:future}
+\begin{itemize}[noitemsep]
+  \item Token-based comparison that ignores identifier names, so that renaming variables no longer hides copying.
+  \item Adjustable category thresholds in the GUI.
+  \item Boilerplate exclusion (an ignore list for starter code supplied by the instructor).
+  \item Removal of repeated matching fragments, and processing each file only once (caching its N-grams) with the comparison running in a worker thread.
+  \item Additional export formats such as HTML and PDF.
+  \item An abstract report-writer interface with virtual functions, so new formats need only a new derived class.
+  \item Language-aware (token-based or syntax-tree) analysis and comparison against an archive of past submissions.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Conclusion}
+The Automated Plagiarism Checker meets its goal of providing a fast, transparent and offline way to compare a set of text or source code files. It combines an N-gram similarity engine with a clean object-oriented structure: independent classes with encapsulated data, a composition-based design, careful error handling around file input and output, and container-based memory management. A Qt interface sits on top of a separate C++ back end, and results are persisted as TXT, JSON and CSV reports. Testing on 13 sample files (78 pairs, $N = 3$) flagged one identical pair at 100\%, placed two pairs (39.59\% and 36.54\%) in the Moderate band and kept the remaining 75 pairs Low. The project also demonstrates sound engineering practice through documented planning and incremental Git commits.
+
+% ---------------------------------------------------------------
+\section{References}
+\begin{enumerate}[noitemsep]
+  \item B. Stroustrup, \emph{The C++ Programming Language}, 4th ed., Addison-Wesley, 2013.
+  \item cppreference.com, C++ Standard Library and \texttt{std::filesystem} documentation.
+  \item Qt Documentation, \texttt{QFileDialog}, \texttt{QMessageBox}, \texttt{QTextStream} and \texttt{QSaveFile} classes, \url{https://doc.qt.io}.
+  \item Git Documentation, \url{https://git-scm.com/doc}.
+  \item P. Jaccard, ``The distribution of the flora in the alpine zone,'' \emph{New Phytologist}, vol. 11, no. 2, pp. 37--50, 1912.
+  \item A. Z. Broder, ``On the resemblance and containment of documents,'' in \emph{Proc. Compression and Complexity of Sequences}, IEEE, 1997, pp. 21--29.
+  \item Course lecture notes and lab manual, Object-Oriented Programming with C++.
+\end{enumerate}
+
+% ---------------------------------------------------------------
+\section*{Appendix A: Sample Output (TXT Report Extract)}
+\addcontentsline{toc}{section}{Appendix A: Sample Output (TXT Report Extract)}
+The first entry of \texttt{plagiarism\_report.txt} generated for the 13-file test set (the folder path is shortened to \ldots):
+
+\begin{lstlisting}[caption={First entry of \texttt{plagiarism\_report.txt}.}]
+AUTOMATED PLAGIARISM CHECKER REPORT
+File 1: .../sample_files\student1.cpp
+File 2: .../sample_files\student10.cpp
+Similarity: 3.14%
+Category: Low
+Matching Text Fragments:
+- #include <iostream> using
+- <iostream> using namespace
+- using namespace std;
+- int main() {
+- cout << "enter
+- "; cin >>
+- cout << "enter
+- "; cin >>
+- cout << "enter
+- "; cin >>
+- else cout <<
+- break; default: cout
+- default: cout <<
+- cout << "invalid
+- return 0; }
+\end{lstlisting}
+
+\section*{Appendix B: Repository Files}
+\addcontentsline{toc}{section}{Appendix B: Repository Files}
+\begin{itemize}[noitemsep]
+  \item \texttt{PLANNING.md}: project overview and module plan
+  \item \texttt{README.md}: short project description
+  \item \texttt{.gitignore}: excludes build output and generated reports
+  \item \texttt{src/}: ComparisonManager, FileManager, NGramGenerator, PlagiarismReport, SimilarityCalculator, TextProcessor and main.cpp
+  \item \texttt{gui/}: Qt front end (main.cpp, SimilarityPieChart)
+  \item \texttt{sample\_files/}, \texttt{less\_sample\_files/}: test inputs
+  \item \texttt{docs/}, \texttt{diagrams/}: documentation and diagram sources
+  \item \texttt{plagiarism\_report.txt}, \texttt{plagiarism\_report.json}, \texttt{plagiarism\_results.csv}: generated reports
+\end{itemize}
+
+\end{document}
