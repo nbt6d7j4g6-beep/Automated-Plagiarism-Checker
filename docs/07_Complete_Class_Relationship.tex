@@ -1,0 +1,112 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=0.65in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+\usepackage{pdflscape}
+\usepackage{float}
+\usepackage{caption}
+\pagestyle{plain}
+\setlength{\parindent}{0pt}
+
+\tikzset{
+  classbox/.style={draw, rounded corners=2pt, fill=blue!3, align=left,
+    font=\small, inner sep=5pt, text width=5.0cm},
+  smallclass/.style={draw, rounded corners=2pt, fill=blue!3, align=left,
+    font=\small, inner sep=5pt, text width=4.2cm},
+  module/.style={draw, rounded corners=3pt, fill=teal!7, align=center,
+    minimum height=9mm, text width=3.4cm, font=\small},
+  datastore/.style={draw, cylinder, shape border rotate=90, aspect=0.25,
+    fill=orange!10, align=center, minimum height=9mm, text width=2.8cm, font=\small},
+  decision/.style={diamond, draw, fill=yellow!12, align=center, aspect=2.0,
+    inner sep=2pt, font=\small},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  dependency/.style={-{Stealth[length=2mm]}, dashed, thick},
+  association/.style={-{Stealth[length=2mm]}, thick}
+}
+\begin{document}
+\begin{center}
+{\LARGE\bfseries Automated Plagiarism Checker}\\[2mm]
+{\large Complete Class Relationship Diagram}
+\end{center}
+\vspace{4mm}
+
+\begin{landscape}
+\begin{figure}[p]\centering
+\begin{tikzpicture}[
+ classbox/.style={draw=black,rounded corners=3pt,fill=blue!5,thick,
+   text width=4.5cm,align=left,inner sep=7pt,font=\small},
+ mainbox/.style={classbox,fill=green!8,text width=3.5cm},
+ managerbox/.style={classbox,fill=orange!10,text width=4.5cm},
+ dependency/.style={-{Stealth[length=2mm]},dashed,thick,black},
+ node distance=12mm and 20mm
+]
+\node[mainbox] (main) {
+\centering \textbf{main()}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
+Creates:
+\begin{itemize}
+\item FileManager
+\item ComparisonManager
+\end{itemize}
+Calls:
+\begin{itemize}
+\item findFiles()
+\item compareFiles()
+\end{itemize}
+};
+\node[managerbox,right=25mm of main] (cm) {
+\centering \textbf{ComparisonManager}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
++ compareFiles(vector<string>): void
+};
+\node[classbox,right=35mm of cm,yshift=35mm] (fm) {
+\centering \textbf{FileManager}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
++ findFiles(string): vector<string>\\
++ readFile(string): string
+};
+\node[classbox,below=10mm of fm] (tp) {
+\centering \textbf{TextProcessor}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
++ processText(string): string
+};
+\node[classbox,below=10mm of tp] (ng) {
+\centering \textbf{NGramGenerator}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
++ generateNGrams(string,int): vector<string>
+};
+\node[classbox,below=10mm of ng] (sc) {
+\centering \textbf{SimilarityCalculator}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
++ calculateSimilarity(vector<string>,vector<string>): double
+};
+\node[classbox,below=10mm of sc] (pr) {
+\centering \textbf{PlagiarismReport}\\
+\rule{\linewidth}{0.4pt}
+\raggedright
+- results: vector<Result>\\
++ addResult(...)\\
++ saveReport(string)\\
++ saveJsonReport(string)
+};
+\draw[dependency] (main.east) -- node[above,font=\scriptsize]{uses} (cm.west);
+\draw[dependency] (main.north east) to[out=45,in=180] node[above,font=\scriptsize]{uses} (fm.west);
+\draw[dependency] (cm.east) to[out=20,in=180] node[above,font=\scriptsize]{creates / calls} (fm.west);
+\draw[dependency] (cm.east) to[out=10,in=180] node[above,font=\scriptsize]{creates / calls} (tp.west);
+\draw[dependency] (cm.east) -- node[above,font=\scriptsize]{creates / calls} (ng.west);
+\draw[dependency] (cm.east) to[out=-10,in=180] node[below,font=\scriptsize]{creates / calls} (sc.west);
+\draw[dependency] (cm.east) to[out=-25,in=180] node[below,font=\scriptsize]{creates / calls} (pr.west);
+\end{tikzpicture}
+\caption{Complete class relationship diagram. Dashed arrows represent usage and dependencies, not inheritance.}
+\end{figure}
+\end{landscape}
+
+\end{document}
