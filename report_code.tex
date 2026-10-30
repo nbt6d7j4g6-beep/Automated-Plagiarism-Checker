@@ -19,11 +19,11 @@
 \usepackage{tocloft}
 \usepackage[hidelinks]{hyperref}
 
-% -------------------------------------------- numbering: chapter 26.1 style
-\renewcommand{\thechapter}{26.1}
+% -------------------------------------------- numbering: chapter 28.1 style
+\renewcommand{\thechapter}{28.1}
 \setcounter{chapter}{0}
 \setcounter{tocdepth}{2}
-% wider number boxes so long numbers (26.1.4.3, 26.1.15) never touch the titles
+% wider number boxes so long numbers (28.1.4.3, 28.1.15) never touch the titles
 \setlength{\cftchapnumwidth}{3.2em}
 \cftsetindents{section}{3.2em}{4.2em}
 \cftsetindents{subsection}{7.4em}{5.2em}
@@ -41,7 +41,7 @@
 % ------------------------------------------------------------ page style
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\slshape CHAPTER 26.1. AUTOMATED PLAGIARISM CHECKER}
+\fancyhead[L]{\slshape CHAPTER 28.1. AUTOMATED PLAGIARISM CHECKER}
 \fancyhead[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
@@ -158,7 +158,7 @@ built from separate, independent classes, and persistent storage through exporta
 JSON and CSV reports.
 \end{quotation}
 
-% ------------------------------------------------------------------ 26.1.1
+% ------------------------------------------------------------------ 28.1.1
 \section{Introduction and Problem Statement}
 
 In academic settings, programming assignments and written work are routinely submitted by
@@ -184,7 +184,7 @@ reviewable and exportable form.}
         modular code base.
 \end{itemize}
 
-% ------------------------------------------------------------------ 26.1.2
+% ------------------------------------------------------------------ 28.1.2
 \section{Scope and Feature Set}
 
 \subsection{In scope}
@@ -224,7 +224,7 @@ reviewable and exportable form.}
         amounts of legitimate overlap.
 \end{itemize}
 
-% ------------------------------------------------------------------ 26.1.3
+% ------------------------------------------------------------------ 28.1.3
 \section{Background: N-Gram Similarity}
 
 \subsection{N-grams and pre-processing}
@@ -268,7 +268,7 @@ below 30\%            & Low       & Overlap is limited to common structure and b
 \label{tab:categories}
 \end{table}
 
-% ------------------------------------------------------------------ 26.1.4
+% ------------------------------------------------------------------ 28.1.4
 \section{System Architecture and Design}
 
 \subsection{Separation of concerns}
@@ -648,7 +648,7 @@ one module at a time.
 \label{fig:fc-report}
 \end{figure}
 
-% ------------------------------------------------------------------ 26.1.5
+% ------------------------------------------------------------------ 28.1.5
 \section{Object-Oriented Architecture}
 
 \subsection{Class design and associations}
@@ -856,7 +856,7 @@ above, one class at a time.
 \label{fig:uml-pr}
 \end{figure}
 
-% ------------------------------------------------------------------ 26.1.6
+% ------------------------------------------------------------------ 28.1.6
 \section{Advanced C++ Mechanics}
 
 \subsection{Templates}
@@ -942,7 +942,7 @@ comparison pipeline. In the GUI, widgets are created with \cc{new} and attached 
 widget or layout, and Qt's parent-child ownership releases them when the parent window is
 destroyed.
 
-% ------------------------------------------------------------------ 26.1.7
+% ------------------------------------------------------------------ 28.1.7
 \section{Frontend and Backend Integration}
 
 \subsection{Frontend}
@@ -1056,7 +1056,7 @@ of 3 and the results array.}
 \label{fig:rep-csv}
 \end{figure}
 
-% ------------------------------------------------------------------ 26.1.8
+% ------------------------------------------------------------------ 28.1.8
 \section{Implementation Summary}
 
 \begin{table}[htbp]
@@ -1084,7 +1084,7 @@ Repository layout & \cc{src/} (back-end classes), \cc{gui/} (Qt front end),
 \label{tab:impl}
 \end{table}
 
-% ------------------------------------------------------------------ 26.1.9
+% ------------------------------------------------------------------ 28.1.9
 \section{Technology Stack}
 The application is written in C++17 and built for Windows. The back end uses only the C++
 standard library, and the graphical front end uses the Qt~6 Widgets module. The program is
@@ -1124,7 +1124,7 @@ Target platform & Windows desktop &
 \label{tab:stack}
 \end{table}
 
-% ------------------------------------------------------------------ 26.1.10
+% ------------------------------------------------------------------ 28.1.10
 \section{Version Control (Git)}
 The project is maintained in a public Git repository (\cc{Automated-Plagiarism-Checker})
 hosted on GitHub.
@@ -1153,7 +1153,7 @@ fragments side by side with highlighting'', ``Add comparison progress indicator'
 \label{fig:github}
 \end{figure}
 
-% ------------------------------------------------------------------ 26.1.11
+% ------------------------------------------------------------------ 28.1.11
 \section{Testing and Results}
 
 \subsection{Test data}
@@ -1232,7 +1232,7 @@ File with fewer than $N$ words & No N-grams are produced for that file, so its s
 \label{tab:edge}
 \end{table}
 
-% ------------------------------------------------------------------ 26.1.12
+% ------------------------------------------------------------------ 28.1.12
 \section{Limitations}
 \begin{itemize}[nosep]
   \item The method is lexical: code with the same logic written using a different structure,
@@ -1254,7 +1254,7 @@ File with fewer than $N$ words & No N-grams are produced for that file, so its s
         be opened; the user is not notified.
 \end{itemize}
 
-% ------------------------------------------------------------------ 26.1.13
+% ------------------------------------------------------------------ 28.1.13
 \section{Future Enhancements}\label{sec:future}
 \begin{itemize}[nosep]
   \item Token-based comparison that ignores identifier names, so that renaming variables no
@@ -1270,7 +1270,7 @@ File with fewer than $N$ words & No N-grams are produced for that file, so its s
         archive of past submissions.
 \end{itemize}
 
-% ------------------------------------------------------------------ 26.1.14
+% ------------------------------------------------------------------ 28.1.14
 \section{Conclusion}
 The Automated Plagiarism Checker meets its goal of providing a fast, transparent and offline
 way to compare a set of text or source code files. It combines an N-gram similarity engine
@@ -1282,7 +1282,7 @@ $N=3$) flagged one identical pair at 100\%, placed two pairs (39.59\% and 36.54\
 Moderate band and kept the remaining 75 pairs Low. The project also demonstrates sound
 engineering practice through documented planning and incremental Git commits.
 
-% ------------------------------------------------------------------ 26.1.15
+% ------------------------------------------------------------------ 28.1.15
 \section{References}
 \begin{enumerate}[nosep]
   \item B.~Stroustrup, \emph{The C++ Programming Language}, 4th ed., Addison-Wesley, 2013.
