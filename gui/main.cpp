@@ -21,6 +21,15 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QLineEdit>
+#include <QDialog>
+#include <QPlainTextEdit>
+#include <QTextEdit>
+#include <QDialogButtonBox>
+#include <QTextCursor>
+#include <QTextCharFormat>
+#include <QTextDocument>
+#include <QTextBlock>
+#include <QColor>
 
 #include <string>
 #include <vector>
@@ -366,12 +375,11 @@ progressBar->setStyleSheet(
         "File 2",
         "Similarity",
         "Category",
-        "Matching Text Fragments"
+        "Action"
     });
 
-    table->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::Stretch
-    );
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
 
     table->setEditTriggers(
         QAbstractItemView::NoEditTriggers
@@ -430,7 +438,8 @@ sort(sortedResults.begin(), sortedResults.end(),
                     continue;
                 }
             if (selectedFilter == "High Similarity" &&
-                result.category != "High")
+                result.category != "High" &&
+                result.category != "Very High")
             {
                 continue;
             }
@@ -460,10 +469,28 @@ sort(sortedResults.begin(), sortedResults.end(),
                 QString::fromStdString(result.file2)
             ).fileName();
 
-            table->setItem(
-                row, 0,
-                new QTableWidgetItem(file1)
+            QTableWidgetItem *file1Item = new QTableWidgetItem(file1);
+
+            // Store the matching result's index so double-click works
+            // even after sorting or filtering the table.
+            auto originalResult = find_if(
+                allResults.begin(), allResults.end(),
+                [&result](const Result &item)
+                {
+                    return item.file1 == result.file1 &&
+                           item.file2 == result.file2;
+                }
             );
+
+            if (originalResult != allResults.end())
+            {
+                file1Item->setData(
+                    Qt::UserRole,
+                    static_cast<int>(originalResult - allResults.begin())
+                );
+            }
+
+            table->setItem(row, 0, file1Item);
 
             table->setItem(
                 row, 1,
@@ -486,23 +513,148 @@ sort(sortedResults.begin(), sortedResults.end(),
                 )
             );
 
-            QStringList fragments;
 
-            for (const string &gram : result.matchingNGrams)
-            {
-                fragments.append(
-                    QString::fromStdString(gram)
-                );
-            }
-
-            QString matchingText = fragments.isEmpty()
-                ? "No matching fragments"
-                : fragments.join("\n");
-
-            table->setItem(
-                row, 4,
-                new QTableWidgetItem(matchingText)
+            QPushButton *viewButton = new QPushButton("View Fragments");
+            viewButton->setMinimumHeight(52);
+            viewButton->setStyleSheet(
+                "QPushButton { background-color: #111827; color: white; "
+                "border: 1px solid #3B82F6; border-radius: 7px; "
+                "padding: 8px; font-weight: 600; }"
+                "QPushButton:hover { background-color: #1D4ED8; }"
             );
+
+            int storedIndex = file1Item->data(Qt::UserRole).toInt();
+            QObject::connect(viewButton, &QPushButton::clicked,
+                [&window, &allResults, storedIndex]()
+                {
+                    if (storedIndex < 0 ||
+                        storedIndex >= static_cast<int>(allResults.size()))
+                        return;
+
+                    const Result &selected = allResults[storedIndex];
+
+                    auto readSource = [](const string &path) -> QString
+                    {
+                        QFile file(QString::fromStdString(path));
+                        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+                            return QString("Unable to open this source file.");
+                        return QString::fromUtf8(file.readAll());
+                    };
+
+                    QString source1 = readSource(selected.file1);
+                    QString source2 = readSource(selected.file2);
+
+                    QDialog compareDialog(&window);
+                    compareDialog.setWindowTitle("Source Code Comparison - Side by Side");
+                    compareDialog.resize(1100, 720);
+
+                    QVBoxLayout *outer = new QVBoxLayout(&compareDialog);
+                    QLabel *summary = new QLabel(
+                        QString("Similarity: %1%    |    Category: %2")
+                            .arg(QString::number(selected.similarity, 'f', 2))
+                            .arg(QString::fromStdString(selected.category))
+                    );
+                    summary->setStyleSheet(
+                        "color: #60A5FA; font-size: 13pt; font-weight: bold; padding: 8px;"
+                    );
+                    outer->addWidget(summary);
+
+                    QHBoxLayout *panels = new QHBoxLayout();
+
+                    auto createCodePanel = [&](const QString &fileName,
+                                               const QString &source)
+                    {
+                        QWidget *panel = new QWidget();
+                        QVBoxLayout *panelLayout = new QVBoxLayout(panel);
+                        QLabel *name = new QLabel(fileName);
+                        name->setStyleSheet("color: #60A5FA; font-weight: bold; padding: 4px;");
+
+                        QPlainTextEdit *editor = new QPlainTextEdit();
+                        editor->setReadOnly(true);
+                        editor->setLineWrapMode(QPlainTextEdit::NoWrap);
+                        editor->setPlainText(source);
+                        editor->setStyleSheet(
+                            "QPlainTextEdit { background: #111827; color: #F9FAFB; "
+                            "border: 1px solid #374151; padding: 5px; "
+                            "font-family: Consolas, monospace; font-size: 10pt; }"
+                        );
+
+                        QList<QTextEdit::ExtraSelection> highlights;
+                        QStringList normalizedGrams;
+
+                        for (const string &gram : selected.matchingNGrams)
+                        {
+                            normalizedGrams.append(
+                                QString::fromStdString(gram).simplified().toLower()
+                            );
+                        }
+
+                        QTextDocument *doc = editor->document();
+
+                        bool isFullySimilar = selected.similarity >= 99.99;
+
+                        for (QTextBlock block = doc->begin();
+                            block.isValid();
+                            block = block.next())
+                        {
+                            QString line = block.text().simplified().toLower();
+
+                            bool matched = false;
+
+                            // If similarity is 100%, highlight every non-empty line.
+                            if (isFullySimilar && !line.isEmpty())
+                            {
+                                matched = true;
+                            }
+                            else
+                            {
+                                // Otherwise, highlight only lines containing matching n-grams.
+                                for (const QString &gram : normalizedGrams)
+                                {
+                                    if (!gram.isEmpty() && line.contains(gram))
+                                    {
+                                        matched = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (matched)
+                            {
+                                QTextEdit::ExtraSelection selection;
+
+                                selection.cursor = QTextCursor(block);
+                                selection.cursor.select(QTextCursor::LineUnderCursor);
+
+                                QTextCharFormat format;
+                                format.setBackground(QColor("#FFE34D"));
+                                format.setForeground(QColor("#111827"));
+
+                                selection.format = format;
+                                highlights.append(selection);
+                            }
+                        }
+
+                        editor->setExtraSelections(highlights);
+                        panelLayout->addWidget(name);
+                        panelLayout->addWidget(editor);
+                        return panel;
+                    };
+
+                    panels->addWidget(createCodePanel(
+                        QFileInfo(QString::fromStdString(selected.file1)).fileName(), source1));
+                    panels->addWidget(createCodePanel(
+                        QFileInfo(QString::fromStdString(selected.file2)).fileName(), source2));
+                    outer->addLayout(panels, 1);
+
+                    QPushButton *closeButton = new QPushButton("Close");
+                    QObject::connect(closeButton, &QPushButton::clicked,
+                                     &compareDialog, &QDialog::accept);
+                    outer->addWidget(closeButton);
+                    compareDialog.exec();
+                });
+
+            table->setCellWidget(row, 4, viewButton);
         }
 
         statusLabel->setText(
@@ -517,6 +669,17 @@ sort(sortedResults.begin(), sortedResults.end(),
             "background: transparent;"
         );
     };
+
+    // Double-clicking a result also opens its side-by-side source comparison.
+    QObject::connect(
+        table, &QTableWidget::cellDoubleClicked,
+        [table](int row, int)
+        {
+            if (QWidget *widget = table->cellWidget(row, 4))
+                if (QPushButton *button = qobject_cast<QPushButton *>(widget))
+                    button->click();
+        }
+    );
 
     // Refresh the table when the filter changes
     QObject::connect(
@@ -745,7 +908,8 @@ allResults = comparison.compareFiles(
 
             for (const Result &result : allResults)
             {
-                if (result.category == "High")
+                if (result.category == "High" ||
+                    result.category == "Very High")
                 {
                     highCount++;
                 }
